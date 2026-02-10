@@ -354,7 +354,7 @@
 <body>
     <header>
         <h1>🧠 MCP Xcode Server</h1>
-        <p>Connect your local Ollama LLM to Xcode's AI Assistant with persistent memory using LanceDB</p>
+        <p>Local AI for Xcode — Qwen2.5-Coder LLM + LanceDB vector memory + Re-Ranking</p>
     </header>
 
     <nav>
@@ -378,9 +378,9 @@
 
             <div class="card-grid">
                 <div class="card">
-                    <div class="icon">🦙</div>
-                    <h4>Ollama Integration</h4>
-                    <p>Use local LLMs like CodeLlama for code generation, explanation, and debugging.</p>
+                    <div class="icon">🤖</div>
+                    <h4>Code-Optimized LLM</h4>
+                    <p>Qwen2.5-Coder-7B trained specifically on code, with 16K context window.</p>
                 </div>
                 <div class="card">
                     <div class="icon">🔧</div>
@@ -389,8 +389,13 @@
                 </div>
                 <div class="card">
                     <div class="icon">🧠</div>
-                    <h4>Persistent Memory</h4>
-                    <p>LanceDB vector database stores your code context for smarter responses.</p>
+                    <h4>RAG + Re-Ranking</h4>
+                    <p>LanceDB vector search with ms-marco cross-encoder re-ranking for precise results.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🏷️</div>
+                    <h4>Auto-Labeling</h4>
+                    <p>Automatically categorizes code (ui, networking, tests, etc.) for filtered search.</p>
                 </div>
                 <div class="card">
                     <div class="icon">🔒</div>
@@ -408,7 +413,6 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Your Mac                                 │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
 │   ┌─────────────────────┐                                       │
 │   │    Xcode 26.x       │                                       │
 │   │  ┌───────────────┐  │                                       │
@@ -420,17 +424,19 @@
 │   ┌─────────────────────────────────────────────┐               │
 │   │         MCP Xcode Server (Python)           │               │
 │   │  ┌───────────────────────────────────────┐  │               │
-│   │  │              Tools                    │  │               │
-│   │  │  • generate_code    • explain_code    │  │               │
-│   │  │  • fix_code         • ask_with_context│  │               │
-│   │  │  • add_to_memory    • search_memory   │  │               │
+│   │  │   RAG Pipeline + Re-Ranker           │  │               │
+│   │  │  Vector Search → Re-Rank → LLM      │  │               │
 │   │  └───────────────────────────────────────┘  │               │
 │   └──────────┬──────────────────┬───────────────┘               │
 │              │                  │                                │
 │              ▼                  ▼                                │
 │   ┌──────────────────┐  ┌──────────────────┐                    │
-│   │     Ollama       │  │    LanceDB      │                    │
+│   │     Ollama       │  │    LanceDB       │                    │
 │   │  (Local LLM)     │  │  (Vector DB)     │                    │
+│   │                  │  │                  │                    │
+│   │  Qwen2.5-Coder   │  │  Code + Labels   │                    │
+│   │  nomic-embed     │  │  Docs Memory     │                    │
+│   │  :v1.5           │  │  History         │                    │
 │   └──────────────────┘  └──────────────────┘                    │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -455,7 +461,7 @@
                 <li>
                     <h4>Create Custom Models</h4>
                     <pre><code>./scripts/create_models.sh</code></pre>
-                    <p>Creates specialized iOS Swift Architect models.</p>
+                    <p>Pulls Qwen2.5-Coder-7B and creates specialized iOS models.</p>
                 </li>
                 <li>
                     <h4>Ingest Your Project</h4>
@@ -490,24 +496,62 @@
                     <tr>
                         <th>Model</th>
                         <th>Best For</th>
-                        <th>Create Command</th>
+                        <th>Base</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td><code>ios-qwen-coder</code> ⭐</td>
+                        <td>All iOS development (recommended)</td>
+                        <td><code>qwen2.5-coder:7b</code></td>
+                    </tr>
+                    <tr>
                         <td><code>ios-swift-architect</code></td>
                         <td>General iOS development, architecture decisions</td>
-                        <td><code>ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></td>
+                        <td><code>llama3.1:8b</code></td>
                     </tr>
                     <tr>
                         <td><code>swiftui-specialist</code></td>
                         <td>SwiftUI views, declarative UI patterns</td>
-                        <td><code>ollama create swiftui-specialist -f models/Modelfile.swiftui</code></td>
+                        <td><code>llama3.1:8b</code></td>
                     </tr>
                     <tr>
                         <td><code>ios-code-reviewer</code></td>
                         <td>Code review, finding bugs, improvements</td>
-                        <td><code>ollama create ios-code-reviewer -f models/Modelfile.reviewer</code></td>
+                        <td><code>llama3.1:8b</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>AI Stack</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Tool/Model</th>
+                        <th>RAM Usage (Est.)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>LLM</strong></td>
+                        <td><code>Qwen2.5-Coder-7B-Instruct</code> (Q4_K_M GGUF)</td>
+                        <td>~5.5 GB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vector DB</strong></td>
+                        <td><strong>LanceDB</strong> (Embedded, saves RAM)</td>
+                        <td>~0.5 GB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Embeddings</strong></td>
+                        <td><code>nomic-embed-text-v1.5</code> (Run via Ollama)</td>
+                        <td>~0.3 GB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Re-Ranker</strong></td>
+                        <td><code>ms-marco-MiniLM-L-6-v2</code></td>
+                        <td>~0.1 GB</td>
                     </tr>
                 </tbody>
             </table>
@@ -628,10 +672,20 @@ python scripts/memory_search.py --export backup.json</code></pre>
             <h3>Ollama Settings</h3>
             <pre><code><span class="code-keyword">ollama:</span>
   <span class="code-keyword">base_url:</span> <span class="code-string">"http://localhost:11434"</span>
-  <span class="code-keyword">chat_model:</span> <span class="code-string">"ios-swift-architect"</span>
-  <span class="code-keyword">embedding_model:</span> <span class="code-string">"nomic-embed-text"</span>
+  <span class="code-keyword">chat_model:</span> <span class="code-string">"ios-qwen-coder"</span>         <span class="code-comment"># Qwen2.5-Coder-7B</span>
+  <span class="code-keyword">embedding_model:</span> <span class="code-string">"nomic-embed-text:v1.5"</span>
   <span class="code-keyword">temperature:</span> 0.1
   <span class="code-keyword">max_tokens:</span> 4096</code></pre>
+
+            <h3>Labels (Auto-Labeling)</h3>
+            <pre><code><span class="code-keyword">labels:</span>
+  <span class="code-keyword">auto_detect:</span> <span class="code-keyword">true</span>    <span class="code-comment"># Auto-label by path, content, extension</span>
+  <span class="code-keyword">path_rules:</span>
+    - <span class="code-keyword">pattern:</span> <span class="code-string">"MyFeature/"</span>
+      <span class="code-keyword">labels:</span> [<span class="code-string">"feature-x"</span>]
+  <span class="code-keyword">content_rules:</span>
+    - <span class="code-keyword">pattern:</span> <span class="code-string">"import SpecialLib"</span>
+      <span class="code-keyword">labels:</span> [<span class="code-string">"special"</span>]</code></pre>
 
             <h3>LanceDB Settings</h3>
             <pre><code><span class="code-keyword">lancedb:</span>
@@ -660,6 +714,7 @@ python scripts/memory_search.py --export backup.json</code></pre>
 │   └── vector_store.py      <span class="code-comment"># LanceDB wrapper</span>
 │
 ├── models/                  <span class="code-comment"># Custom Ollama Modelfiles</span>
+│   ├── Modelfile.qwen-coder     <span class="code-comment"># ⭐ Qwen2.5-Coder iOS model</span>
 │   ├── Modelfile.ios-architect
 │   ├── Modelfile.swiftui
 │   └── Modelfile.reviewer
@@ -682,7 +737,7 @@ python scripts/memory_search.py --export backup.json</code></pre>
     </main>
 
     <footer>
-        <p>MCP Xcode Server • Built with Ollama + LanceDB</p>
+        <p>MCP Xcode Server • Qwen2.5-Coder + LanceDB + Re-Ranker</p>
         <p>Made for iOS developers who want local, private AI assistance</p>
     </footer>
 </body>

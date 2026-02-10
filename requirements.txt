@@ -34,3 +34,6 @@ gitignore-parser>=0.1.11
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 aiohttp>=3.9.0
+
+# Re-Ranker (ms-marco cross-encoder for search result re-ranking)
+sentence-transformers>=2.2.0

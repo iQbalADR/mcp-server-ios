@@ -280,17 +280,17 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>ios-swift-architect:latest</code></td>
+                        <td><code>ios-qwen-coder:latest</code></td>
                         <td>✅ Yes</td>
-                        <td>Custom iOS/Swift coding model — best for Xcode</td>
+                        <td>Code-optimized iOS model (Qwen2.5-Coder) — recommended</td>
                     </tr>
                     <tr>
-                        <td><code>llama3.1:8b</code></td>
+                        <td><code>ios-swift-architect:latest</code></td>
                         <td>✅ Optional</td>
-                        <td>General purpose model, good fallback</td>
+                        <td>General purpose iOS model (llama3.1:8b based)</td>
                     </tr>
                     <tr>
-                        <td><code>nomic-embed-text:latest</code></td>
+                        <td><code>nomic-embed-text:v1.5</code></td>
                         <td>❌ No</td>
                         <td>Embedding model only — cannot chat or generate code</td>
                     </tr>
@@ -323,7 +323,7 @@ curl http://localhost:1234/mcp/stats
 # Test a chat request
 curl -X POST http://localhost:1234/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"ios-swift-architect:latest","messages":[{"role":"user","content":"Write a Swift hello world"}]}'</code></pre>
+  -d '{"model":"ios-qwen-coder:latest","messages":[{"role":"user","content":"Write a Swift hello world"}]}'</code></pre>
 
             <div class="alert alert-success">
                 <strong>In Xcode:</strong> Open any Swift file, press <strong>⌥⌘/</strong> (Option+Command+/) to open

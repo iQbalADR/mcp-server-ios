@@ -195,6 +195,7 @@
     </header>
 
     <nav>
+        <a href="#qwen-coder">Qwen Coder ⭐</a>
         <a href="#ios-architect">iOS Architect</a>
         <a href="#swiftui">SwiftUI Specialist</a>
         <a href="#reviewer">Code Reviewer</a>
@@ -211,8 +212,50 @@
             <pre><code><span class="comment"># Create all models at once</span>
 ./scripts/create_models.sh
 
-<span class="comment"># Or create individually</span>
-ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></pre>
+<span class="comment"># Or create the recommended model individually</span>
+ollama create ios-qwen-coder -f models/Modelfile.qwen-coder</code></pre>
+        </section>
+
+        <section id="qwen-coder">
+            <h2>iOS Qwen Coder ⭐ Recommended</h2>
+
+            <div class="model-card">
+                <h3>ios-qwen-coder</h3>
+                <span class="badge">Recommended</span>
+                <span class="badge">Code-Optimized</span>
+                <span class="badge">16K Context</span>
+
+                <p>Built on <strong>Qwen2.5-Coder-7B</strong>, a model trained specifically on code.
+                    Delivers significantly better code generation, completion, and understanding than general-purpose
+                    LLMs.
+                    16K context window for handling large codebases.</p>
+
+                <h4>Why Qwen2.5-Coder?</h4>
+                <ul class="expertise-list">
+                    <li>Trained specifically on code datasets</li>
+                    <li>16K context window (2x larger)</li>
+                    <li>Better code completion accuracy</li>
+                    <li>Smarter refactoring suggestions</li>
+                    <li>More precise Swift syntax</li>
+                    <li>Reduced hallucination on APIs</li>
+                </ul>
+
+                <h4>Same Expertise as iOS Architect</h4>
+                <ul class="expertise-list">
+                    <li>Swift 5.9+ (async/await, actors, macros)</li>
+                    <li>UIKit &amp; SwiftUI</li>
+                    <li>Architecture Patterns (MVVM, VIPER, TCA)</li>
+                    <li>Protocol-Oriented Programming</li>
+                    <li>Memory Management</li>
+                    <li>Full iOS SDK Knowledge</li>
+                </ul>
+
+                <h4>Create Command</h4>
+                <pre><code>ollama create ios-qwen-coder -f models/Modelfile.qwen-coder</code></pre>
+
+                <h4>Test It</h4>
+                <pre><code>ollama run ios-qwen-coder "Create a Swift networking layer with async/await and Codable"</code></pre>
+            </div>
         </section>
 
         <section id="ios-architect">
@@ -220,8 +263,8 @@ ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></pre>
 
             <div class="model-card">
                 <h3>ios-swift-architect</h3>
-                <span class="badge">Recommended</span>
                 <span class="badge">General Purpose</span>
+                <span class="badge">llama3.1:8b</span>
 
                 <p>The primary model for iOS development. Deep expertise in Swift, iOS frameworks, and architecture
                     patterns.</p>
@@ -330,10 +373,12 @@ chmod +x scripts/create_models.sh
 ./scripts/create_models.sh</code></pre>
 
             <h3>Manual Creation</h3>
-            <pre><code><span class="comment"># 1. Ensure base model exists</span>
+            <pre><code><span class="comment"># 1. Pull base models</span>
+ollama pull qwen2.5-coder:7b
 ollama pull llama3.1:8b
 
 <span class="comment"># 2. Create each model</span>
+ollama create ios-qwen-coder -f models/Modelfile.qwen-coder
 ollama create ios-swift-architect -f models/Modelfile.ios-architect
 ollama create swiftui-specialist -f models/Modelfile.swiftui
 ollama create ios-code-reviewer -f models/Modelfile.reviewer
@@ -344,7 +389,8 @@ ollama list</code></pre>
             <h3>Using with MCP Server</h3>
             <p>Update <code>config.yaml</code>:</p>
             <pre><code><span class="param">ollama:</span>
-  <span class="param">chat_model:</span> <span class="value">"ios-swift-architect"</span></code></pre>
+  <span class="param">chat_model:</span> <span class="value">"ios-qwen-coder"</span>  <span class="comment"># Recommended</span>
+  <span class="param">embedding_model:</span> <span class="value">"nomic-embed-text:v1.5"</span></code></pre>
         </section>
 
         <section id="customize">
@@ -372,8 +418,8 @@ ollama list</code></pre>
                     </tr>
                     <tr>
                         <td><code>num_ctx</code></td>
-                        <td>8192</td>
-                        <td>Context window size (tokens)</td>
+                        <td>16384</td>
+                        <td>Context window size (Qwen supports up to 128K)</td>
                     </tr>
                     <tr>
                         <td><code>top_p</code></td>
@@ -390,20 +436,20 @@ ollama list</code></pre>
 
             <h3>Alternative Base Models</h3>
             <p>Change the <code>FROM</code> line in any Modelfile:</p>
-            <pre><code><span class="comment"># Smaller, faster</span>
-FROM codellama:7b
+            <pre><code><span class="comment"># Best for code (recommended)</span>
+FROM qwen2.5-coder:7b
 
-<span class="comment"># Good balance (default)</span>
+<span class="comment"># Good general purpose</span>
 FROM llama3.1:8b
 
+<span class="comment"># Smaller, faster</span>
+FROM codellama:7b
+
 <span class="comment"># Larger, better quality</span>
-FROM codellama:34b
+FROM codellama:13b
 
 <span class="comment"># Alternative code model</span>
-FROM deepseek-coder
-
-<span class="comment"># General purpose</span>
-FROM llama3.2:latest</code></pre>
+FROM deepseek-coder</code></pre>
 
             <h3>Creating Your Own Model</h3>
             <pre><code><span class="comment"># 1. Create a new Modelfile</span>

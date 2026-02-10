@@ -14,7 +14,22 @@ ollama create ios-swift-architect -f models/Modelfile.ios-architect
 
 ## Available Models
 
-### 1. iOS Swift Architect (`ios-swift-architect`)
+### 1. iOS Qwen Coder (`ios-qwen-coder`) ⭐ Recommended
+
+**Best for**: All iOS/Swift development — code-optimized with 16K context
+
+```bash
+ollama create ios-qwen-coder -f models/Modelfile.qwen-coder
+```
+
+**Base model**: `qwen2.5-coder:7b` (~4.7 GB, Q4_K_M quantization)
+
+**Why Qwen2.5-Coder?**
+- Trained specifically on code, outperforms general-purpose LLMs
+- 128K max context window (we use 16K for speed/quality balance)
+- Better code completion, generation, and understanding
+
+### 2. iOS Swift Architect (`ios-swift-architect`)
 
 **Best for**: General iOS development, architecture decisions, production code
 
@@ -65,8 +80,9 @@ Update `config.yaml` to use your custom model:
 
 ```yaml
 ollama:
-  chat_model: "ios-swift-architect"  # or swiftui-specialist, ios-code-reviewer
-  embedding_model: "nomic-embed-text"
+  chat_model: "ios-qwen-coder"    # Recommended (Qwen2.5-Coder-7B)
+  # chat_model: "ios-swift-architect"  # Alternative (llama3.1:8b based)
+  embedding_model: "nomic-embed-text:v1.5"
 ```
 
 ## Testing Models
@@ -100,7 +116,7 @@ SYSTEM """Your custom instructions here..."""
 |-----------|---------|-------------|
 | `temperature` | 0.1 | Lower = more deterministic, Higher = more creative |
 | `repeat_penalty` | 1.1 | Reduces repetition in output |
-| `num_ctx` | 8192 | Context window size (tokens) |
+| `num_ctx` | 16384 | Context window size (tokens). Qwen supports up to 128K |
 | `top_p` | 0.9 | Nucleus sampling threshold |
 | `num_predict` | 4096 | Max tokens to generate |
 
@@ -109,11 +125,11 @@ SYSTEM """Your custom instructions here..."""
 Change `FROM` to use a different base:
 
 ```
+FROM qwen2.5-coder:7b   # Recommended for code
+FROM llama3.1:8b        # Good general purpose
 FROM codellama:7b       # Smaller, faster
-FROM codellama:13b      # Good balance (default)
-FROM codellama:34b      # Larger, better quality
+FROM codellama:13b      # Larger, better quality
 FROM deepseek-coder     # Alternative code model
-FROM llama3.2:latest    # General purpose
 ```
 
 ## Creating Your Own Model
@@ -151,7 +167,8 @@ ollama run my-custom-model
 
 | File | Model Name | Purpose |
 |------|------------|---------|
-| `Modelfile.ios-architect` | ios-swift-architect | General iOS/Swift |
+| `Modelfile.qwen-coder` | ios-qwen-coder | ⭐ Recommended iOS/Swift (Qwen2.5-Coder) |
+| `Modelfile.ios-architect` | ios-swift-architect | General iOS/Swift (llama3.1:8b) |
 | `Modelfile.swiftui` | swiftui-specialist | SwiftUI development |
 | `Modelfile.reviewer` | ios-code-reviewer | Code review |
 | `Modelfile.embeddings` | (documentation) | Embedding config notes |

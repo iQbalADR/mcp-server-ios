@@ -8,17 +8,19 @@ ollama:
   
   # Primary model for chat/code generation
   # Custom models (run ./scripts/create_models.sh first):
-  #   - ios-swift-architect   (recommended for iOS development)
+  #   - ios-qwen-coder       (recommended - Qwen2.5-Coder-7B, code-optimized)
+  #   - ios-swift-architect   (llama3.1:8b based, general purpose)
   #   - swiftui-specialist    (SwiftUI focused)
   #   - ios-code-reviewer     (code review mode)
-  # Standard models (base: llama3.1:8b):
+  # Standard models:
+  #   - qwen2.5-coder:7b
   #   - llama3.1:8b
   #   - codellama:13b
-  chat_model: "ios-swift-architect"
+  chat_model: "ios-qwen-coder"
   
   # Model for generating embeddings
-  # Options: nomic-embed-text, mxbai-embed-large, all-minilm
-  embedding_model: "nomic-embed-text"
+  # Options: nomic-embed-text:v1.5 (recommended), nomic-embed-text, mxbai-embed-large
+  embedding_model: "nomic-embed-text:v1.5"
   
   # Request timeout in seconds
   timeout: 120

@@ -11,6 +11,7 @@
 #   ./scripts/create_models.sh
 #
 # Available models after creation:
+#   - ios-qwen-coder: Qwen2.5-Coder-7B iOS architect (RECOMMENDED)
 #   - ios-swift-architect: General iOS architecture and Swift coding
 #   - swiftui-specialist: SwiftUI-focused development
 #   - ios-code-reviewer: Code review and improvement suggestions
@@ -56,7 +57,25 @@ if ! ollama list 2>/dev/null | grep -q "llama3.1:8b"; then
     echo -e "${YELLOW}! Base model llama3.1:8b not found, pulling...${NC}"
     ollama pull llama3.1:8b
 fi
-echo -e "${GREEN}✓ Base model ready${NC}"
+echo -e "${GREEN}✓ Base model llama3.1:8b ready${NC}"
+
+# Check/pull Qwen2.5-Coder base model
+echo -e "${YELLOW}Checking Qwen2.5-Coder base model...${NC}"
+if ! ollama list 2>/dev/null | grep -q "qwen2.5-coder:7b"; then
+    echo -e "${YELLOW}! Qwen2.5-Coder not found, pulling (~4.7GB)...${NC}"
+    ollama pull qwen2.5-coder:7b
+fi
+echo -e "${GREEN}✓ Base model qwen2.5-coder:7b ready${NC}"
+
+# Create iOS Qwen Coder model (RECOMMENDED)
+echo ""
+echo -e "${YELLOW}Creating ios-qwen-coder model (recommended)...${NC}"
+if [ -f "$MODELS_DIR/Modelfile.qwen-coder" ]; then
+    ollama create ios-qwen-coder -f "$MODELS_DIR/Modelfile.qwen-coder"
+    echo -e "${GREEN}✓ ios-qwen-coder created${NC}"
+else
+    echo -e "${RED}✗ Modelfile not found: $MODELS_DIR/Modelfile.qwen-coder${NC}"
+fi
 
 # Create iOS Swift Architect model
 echo ""
@@ -95,13 +114,13 @@ echo -e "${GREEN}  Custom Models Created!${NC}"
 echo -e "${BLUE}============================================${NC}"
 echo ""
 echo "Available models:"
-ollama list | grep -E "(ios-swift-architect|swiftui-specialist|ios-code-reviewer)" || true
+ollama list | grep -E "(ios-qwen-coder|ios-swift-architect|swiftui-specialist|ios-code-reviewer)" || true
 
 echo ""
 echo -e "To use a model with MCP server, update ${BLUE}config.yaml${NC}:"
 echo ""
 echo -e "  ollama:"
-echo -e "    chat_model: \"${GREEN}ios-swift-architect${NC}\""
+echo -e "    chat_model: \"${GREEN}ios-qwen-coder${NC}\"  # Recommended"
 echo ""
 echo -e "Or test a model directly:"
 echo -e "  ollama run ios-swift-architect"

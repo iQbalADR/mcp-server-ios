@@ -38,6 +38,77 @@ class SearchResult:
     id: str
 
 
+class ReRanker:
+    """Re-ranks search results using a cross-encoder model for better relevance."""
+    
+    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
+        self.model_name = model_name
+        self._model = None
+    
+    def _fix_ssl_certs(self):
+        """Fix SSL certificate issues on macOS."""
+        import os
+        import ssl
+        try:
+            import certifi
+            os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
+            os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+        except ImportError:
+            pass
+        # Fallback: disable SSL verification if certs still fail
+        if not os.environ.get("REQUESTS_CA_BUNDLE"):
+            os.environ["CURL_CA_BUNDLE"] = ""
+            try:
+                ssl._create_default_https_context = ssl._create_unverified_context
+            except AttributeError:
+                pass
+    
+    def _load_model(self):
+        """Lazy-load the cross-encoder model."""
+        if self._model is None:
+            try:
+                self._fix_ssl_certs()
+                from sentence_transformers import CrossEncoder
+                logger.info(f"Loading re-ranker model: {self.model_name}")
+                self._model = CrossEncoder(self.model_name)
+                logger.info("Re-ranker model loaded")
+            except ImportError:
+                logger.warning("sentence-transformers not installed, re-ranking disabled")
+                self._model = None
+            except Exception as e:
+                logger.error(f"Failed to load re-ranker: {e}")
+                self._model = None
+    
+    def rerank(self, query: str, results: List[Dict], top_k: int = 5) -> List[Dict]:
+        """
+        Re-rank search results by relevance to query.
+        
+        Args:
+            query: The original search query
+            results: List of result dicts with 'content' field
+            top_k: Number of top results to return
+        """
+        self._load_model()
+        if self._model is None or not results:
+            return results[:top_k]
+        
+        try:
+            # Create query-document pairs for scoring
+            pairs = [(query, r.get("content", "")[:1000]) for r in results]
+            scores = self._model.predict(pairs)
+            
+            # Attach scores and sort
+            for i, score in enumerate(scores):
+                results[i]["_rerank_score"] = float(score)
+            
+            reranked = sorted(results, key=lambda x: x.get("_rerank_score", 0), reverse=True)
+            logger.debug(f"Re-ranked {len(results)} results, top score: {reranked[0].get('_rerank_score', 0):.3f}")
+            return reranked[:top_k]
+        except Exception as e:
+            logger.error(f"Re-ranking failed: {e}")
+            return results[:top_k]
+
+
 class VectorStore:
     """
     Vector database wrapper using LanceDB for persistent memory.
@@ -86,6 +157,7 @@ class VectorStore:
         db_path: str = "./data/lancedb",
         embedding_fn: Optional[Callable[[str], List[float]]] = None,
         embedding_dim: int = 384,
+        re_ranker: Optional[ReRanker] = None,
     ):
         """
         Initialize the vector store.
@@ -94,12 +166,14 @@ class VectorStore:
             db_path: Path to LanceDB database directory
             embedding_fn: Function to generate embeddings from text
             embedding_dim: Dimension of embedding vectors
+            re_ranker: Optional ReRanker instance for result re-ranking
         """
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         
         self.embedding_fn = embedding_fn
         self.embedding_dim = embedding_dim
+        self.re_ranker = re_ranker
         
         # Connect to LanceDB
         self.db = lancedb.connect(str(self.db_path))
@@ -258,6 +332,9 @@ class VectorStore:
         """
         Search for similar code snippets.
         
+        Uses vector similarity search, then optionally re-ranks results
+        with a cross-encoder for better relevance.
+        
         Args:
             query: Search query
             n_results: Number of results to return
@@ -273,8 +350,11 @@ class VectorStore:
             
         query_embedding = await self._get_embedding(query)
         
+        # Fetch more candidates if re-ranker is available (4x for better re-ranking)
+        fetch_limit = n_results * 4 if self.re_ranker else n_results
+        
         # Build search
-        search = self._code_table.search(query_embedding).limit(n_results)
+        search = self._code_table.search(query_embedding).limit(fetch_limit)
         
         # Apply filters if provided
         if language:
@@ -287,6 +367,10 @@ class VectorStore:
             search = search.where(f"({label_conditions})")
         
         results = search.to_list()
+        
+        # Re-rank if re-ranker is available
+        if self.re_ranker and len(results) > n_results:
+            results = self.re_ranker.rerank(query, results, top_k=n_results)
         
         return [
             SearchResult(
@@ -640,6 +724,7 @@ async def create_vector_store_with_ollama(
     embedding_model: str = "nomic-embed-text",
     max_retries: int = 3,
     retry_delay: float = 2.0,
+    enable_reranker: bool = True,
 ) -> VectorStore:
     """
     Create a VectorStore with Ollama embeddings.
@@ -695,9 +780,19 @@ async def create_vector_store_with_ollama(
         logger.warning(f"Could not detect embedding dimension: {e}, using 768")
         embedding_dim = 768
     
+    # Initialize re-ranker if enabled
+    re_ranker = None
+    if enable_reranker:
+        try:
+            re_ranker = ReRanker()
+            logger.info("Re-ranker enabled (cross-encoder/ms-marco-MiniLM-L-6-v2)")
+        except Exception as e:
+            logger.warning(f"Re-ranker not available: {e}")
+    
     return VectorStore(
         db_path=db_path,
         embedding_fn=ollama_embed,
         embedding_dim=embedding_dim,
+        re_ranker=re_ranker,
     )
 

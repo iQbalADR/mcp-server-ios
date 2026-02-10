@@ -32,15 +32,18 @@ This project creates a **Model Context Protocol (MCP) server** that bridges:
 
 | Component | Description |
 |-----------|-------------|
-| **Ollama** | Local LLM for code generation and understanding |
+| **Ollama** | Local LLM (Qwen2.5-Coder-7B) for code generation |
 | **Xcode 26.x** | Apple's IDE with AI Assistant support |
 | **LanceDB** | Vector database for persistent memory (RAG) |
+| **Re-Ranker** | Cross-encoder for precise search result ranking |
 
 ### Key Features
 
 - ✅ **Fully Local** - No cloud dependencies, complete privacy
+- ✅ **Code-Optimized LLM** - Qwen2.5-Coder-7B, trained specifically on code
 - ✅ **Persistent Memory** - Your code "notebook" survives sessions
-- ✅ **RAG-Powered** - Context-aware responses using your codebase
+- ✅ **RAG + Re-Ranking** - Context-aware responses with precision re-ranking
+- ✅ **Auto-Labeling** - Automatic code categorization (ui, networking, tests, etc.)
 - ✅ **Debug Mode** - Comprehensive logging for troubleshooting
 - ✅ **Easy Setup** - Automated scripts for quick installation
 
@@ -81,9 +84,9 @@ This project creates a **Model Context Protocol (MCP) server** that bridges:
 │   │     Ollama       │  │     LanceDB      │                    │
 │   │  (Local LLM)     │  │  (Vector DB)     │                    │
 │   │                  │  │                  │                    │
-│   │  llama3.1:8b     │  │  Code Memory     │                    │
-│   │  nomic-embed     │  │  Docs Memory     │                    │
-│   │                  │  │  History         │                    │
+│   │  Qwen2.5-Coder   │  │  Code Memory     │                    │
+│   │  nomic-embed     │  │  + Auto Labels   │                    │
+│   │  :v1.5           │  │  + Re-Ranker     │                    │
 │   └──────────────────┘  └──────────────────┘                    │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -265,8 +268,8 @@ mkdir -p data/lancedb logs
 
 5. **Select Models**
    - Click into your new provider
-   - ✅ Enable **`ios-swift-architect:latest`** (custom iOS model)
-   - ✅ Optionally enable **`llama3.1:8b`** (general purpose)
+   - ✅ Enable **`ios-qwen-coder:latest`** (recommended — code-optimized)
+   - ✅ Optionally enable **`ios-swift-architect:latest`** (general purpose)
    - ❌ Do NOT enable `nomic-embed-text` (embedding only, cannot chat)
 
 6. **Enable Xcode Tools**
@@ -303,11 +306,17 @@ python scripts/ingest_project.py /path/to/project
 # Ingest with specific extensions only
 python scripts/ingest_project.py /path/to/project --extensions swift m h
 
+# Ingest with custom labels
+python scripts/ingest_project.py /path/to/project --labels ios production
+
 # Watch mode (auto-ingest on file changes)
 python scripts/ingest_project.py /path/to/project --watch
 
 # Clear existing memory and re-ingest
 python scripts/ingest_project.py /path/to/project --clear
+
+# Disable auto-labeling
+python scripts/ingest_project.py /path/to/project --no-auto-labels
 ```
 
 #### Shell Alias for Quick Access
@@ -391,11 +400,20 @@ Edit `config.yaml` to customize the server:
 ```yaml
 ollama:
   base_url: "http://localhost:11434"
-  chat_model: "ios-swift-architect"   # Custom iOS model
-  embedding_model: "nomic-embed-text"
-  temperature: 0.1                    # Lower = more deterministic
+  chat_model: "ios-qwen-coder"          # Qwen2.5-Coder-7B (recommended)
+  embedding_model: "nomic-embed-text:v1.5"
+  temperature: 0.1                       # Lower = more deterministic
   max_tokens: 4096
 ```
+
+### AI Stack
+
+| Component | Model | RAM |
+|-----------|-------|-----|
+| LLM | `Qwen2.5-Coder-7B` (via `ios-qwen-coder`) | ~5.5 GB |
+| Embeddings | `nomic-embed-text:v1.5` | ~0.3 GB |
+| Re-Ranker | `ms-marco-MiniLM-L-6-v2` (auto-loaded) | ~0.1 GB |
+| Vector DB | LanceDB (embedded) | ~0.5 GB |
 
 ### LanceDB Settings
 

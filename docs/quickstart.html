@@ -266,19 +266,20 @@
 ./scripts/setup.sh</code></pre>
                 </div>
                 <div class="alert alert-info">
-                    <strong>Note:</strong> This may take a few minutes to download the models (~5GB for llama3.1:8b).
+                    <strong>Note:</strong> This may take a few minutes to download models (~4.7GB for qwen2.5-coder:7b).
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-number">3</div>
                 <h3>Create Custom iOS Models</h3>
-                <p>Create the specialized iOS Swift Architect models:</p>
+                <p>Create the code-optimized iOS models powered by Qwen2.5-Coder:</p>
                 <div class="command-block">
                     <pre><code>./scripts/create_models.sh</code></pre>
                 </div>
                 <p>This creates:</p>
                 <ul style="color: var(--text-secondary); margin-left: 1.5rem;">
+                    <li><code>ios-qwen-coder</code> ⭐ Recommended (Qwen2.5-Coder-7B)</li>
                     <li><code>ios-swift-architect</code> - General iOS development</li>
                     <li><code>swiftui-specialist</code> - SwiftUI focused</li>
                     <li><code>ios-code-reviewer</code> - Code review mode</li>
@@ -314,41 +315,50 @@ alias mcp-server='$MCP_SERVER_PATH/scripts/start_server.sh'</code></pre>
 
             <div class="step">
                 <div class="step-number">6</div>
-                <h3>Start the MCP Server</h3>
-                <p>Start the server (keep this terminal open):</p>
+                <h3>Start the HTTP Server</h3>
+                <p>Start the HTTP server for Xcode integration (keep this terminal open):</p>
                 <div class="command-block">
-                    <pre><code>./scripts/start_server.sh</code></pre>
+                    <pre><code>./scripts/start_http_server.sh</code></pre>
                 </div>
-                <p>For debug mode:</p>
+                <p>Custom port:</p>
                 <div class="command-block">
-                    <pre><code>./scripts/start_server.sh --debug</code></pre>
+                    <pre><code>./scripts/start_http_server.sh 8080</code></pre>
+                </div>
+                <p>Or start directly with Python:</p>
+                <div class="command-block">
+                    <pre><code>python -m server.http_server --port 1234</code></pre>
+                </div>
+                <div class="alert alert-success">
+                    <strong>Server runs at:</strong> <code>http://localhost:1234</code><br>
+                    Provides OpenAI-compatible API that Xcode connects to directly.
                 </div>
             </div>
 
             <div class="step">
                 <div class="step-number">7</div>
-                <h3>Test the Server</h3>
-                <p>Use the MCP Inspector to verify everything works:</p>
+                <h3>Verify the Server</h3>
+                <p>Test the endpoints:</p>
                 <div class="command-block">
-                    <pre><code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></pre>
+                    <pre><code># Health check
+curl http://localhost:1234/health
+
+# List available models
+curl http://localhost:1234/v1/models
+
+# Vector DB stats
+curl http://localhost:1234/mcp/stats
+
+# Label statistics
+curl http://localhost:1234/mcp/labels
+
+# Test a chat request
+curl -X POST http://localhost:1234/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"ios-qwen-coder:latest","messages":[{"role":"user","content":"Write a Swift hello world"}]}'</code></pre>
                 </div>
-                <p>Or run a direct Python test:</p>
-                <div class="command-block">
-                    <pre><code>source venv/bin/activate
-python -c "
-import asyncio
-from server.mcp_server import XcodeMCPServer, load_config
-
-async def test():
-    config = load_config()
-    server = XcodeMCPServer(config)
-    await server.initialize()
-    print('Server ready!')
-    stats = await server.vector_store.get_stats()
-    print(f'Stats: {stats}')
-
-asyncio.run(test())
-"</code></pre>
+                <div class="alert alert-info">
+                    <strong>MCP Inspector (optional):</strong> For debugging the MCP protocol directly:<br>
+                    <code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code>
                 </div>
             </div>
 
@@ -356,11 +366,11 @@ asyncio.run(test())
                 <div class="step-number">8</div>
                 <h3>Connect Xcode 26+</h3>
                 <ol class="steps" style="color: var(--text-secondary); margin-left: 1rem;">
-                    <li>Start the HTTP server: <code>./scripts/start_http_server.sh</code></li>
+                    <li>Make sure the HTTP server is running on port <strong>1234</strong></li>
                     <li>Open <strong>Xcode → Settings → Intelligence</strong></li>
                     <li>Click <strong>"Add Model Provider..."</strong> → <strong>"Locally Hosted"</strong></li>
                     <li>Set Port: <strong>1234</strong>, click <strong>"Add"</strong></li>
-                    <li>Click into your provider and <strong>enable (✓) ios-swift-architect:latest</strong></li>
+                    <li>Click into your provider and <strong>enable (✓) ios-qwen-coder:latest</strong></li>
                     <li>Enable <strong>Xcode Tools</strong> (binoculars icon) for project context</li>
                 </ol>
                 <div class="alert alert-info">
@@ -379,7 +389,7 @@ asyncio.run(test())
 curl http://localhost:11434/api/tags
 
 # Test the custom model
-ollama run ios-swift-architect "Say hello as an iOS architect"</code></pre>
+ollama run ios-qwen-coder "Say hello as an iOS architect"</code></pre>
 
             <h3>Test Memory Search</h3>
             <pre><code># Interactive memory search
@@ -406,7 +416,7 @@ cat logs/requests.jsonl | head -20</code></pre>
 
             <div class="alert alert-warning">
                 <strong>"Model not found"</strong><br>
-                <code>ollama pull llama3.1:8b</code> or run <code>./scripts/create_models.sh</code>
+                <code>ollama pull qwen2.5-coder:7b</code> or run <code>./scripts/create_models.sh</code>
             </div>
 
             <div class="alert alert-warning">
