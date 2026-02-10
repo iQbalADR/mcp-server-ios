@@ -53,6 +53,7 @@ class XcodeHTTPServer:
         self.app.router.add_get("/mcp/tools", self._handle_mcp_tools)
         self.app.router.add_post("/mcp/tools/{tool_name}", self._handle_mcp_tool_call)
         self.app.router.add_get("/mcp/stats", self._handle_mcp_stats)
+        self.app.router.add_get("/mcp/labels", self._handle_mcp_labels)
     
     async def _handle_root(self, request: web.Request) -> web.Response:
         """Root endpoint with server info."""
@@ -66,6 +67,7 @@ class XcodeHTTPServer:
                 "health": "/health",
                 "mcp_tools": "/mcp/tools",
                 "mcp_stats": "/mcp/stats",
+                "mcp_labels": "/mcp/labels",
             }
         })
     
@@ -340,6 +342,17 @@ class XcodeHTTPServer:
         if self.mcp_server.vector_store:
             stats = await self.mcp_server.vector_store.get_stats()
             return web.json_response(stats)
+        return web.json_response({"error": "Vector store not initialized"}, status=500)
+    
+    async def _handle_mcp_labels(self, request: web.Request) -> web.Response:
+        """Get all labels with counts."""
+        if self.mcp_server.vector_store:
+            labels = await self.mcp_server.vector_store.get_labels()
+            return web.json_response({
+                "labels": labels,
+                "total_labels": len(labels),
+                "total_labeled_entries": sum(labels.values()) if labels else 0,
+            })
         return web.json_response({"error": "Vector store not initialized"}, status=500)
     
     async def start(self):

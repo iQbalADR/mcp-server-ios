@@ -161,6 +161,7 @@ class VectorStore:
         file_path: str = "",
         language: str = "swift",
         chunk_type: str = "code",
+        labels: Optional[List[str]] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
@@ -171,6 +172,7 @@ class VectorStore:
             file_path: Path to the source file
             language: Programming language
             chunk_type: Type of chunk (function, class, etc.)
+            labels: List of labels/tags for this code
             metadata: Additional metadata
             
         Returns:
@@ -186,6 +188,7 @@ class VectorStore:
             "file_path": file_path,
             "language": language,
             "chunk_type": chunk_type,
+            "labels": ",".join(labels) if labels else "",
             "created_at": datetime.now().isoformat(),
             "metadata_json": json.dumps(metadata or {}),
         }]
@@ -195,7 +198,7 @@ class VectorStore:
         else:
             self._code_table.add(data)
         
-        logger.debug(f"Added code: {doc_id} from {file_path}")
+        logger.debug(f"Added code: {doc_id} from {file_path} labels={labels}")
         return doc_id
     
     async def add_code_batch(
@@ -206,7 +209,7 @@ class VectorStore:
         Add multiple code snippets in batch.
         
         Args:
-            items: List of dicts with content, file_path, language, etc.
+            items: List of dicts with content, file_path, language, labels, etc.
             
         Returns:
             List of added document IDs
@@ -221,6 +224,7 @@ class VectorStore:
             content = item.get("content", "")
             doc_id = self._generate_id(content, "code_")
             embedding = await self._get_embedding(content)
+            labels = item.get("labels", [])
             
             data.append({
                 "id": doc_id,
@@ -229,6 +233,7 @@ class VectorStore:
                 "file_path": item.get("file_path", ""),
                 "language": item.get("language", "swift"),
                 "chunk_type": item.get("chunk_type", "code"),
+                "labels": ",".join(labels) if isinstance(labels, list) else str(labels),
                 "created_at": datetime.now().isoformat(),
                 "metadata_json": json.dumps(item.get("metadata", {})),
             })
@@ -248,6 +253,7 @@ class VectorStore:
         n_results: int = 5,
         language: Optional[str] = None,
         file_path_filter: Optional[str] = None,
+        labels: Optional[List[str]] = None,
     ) -> List[SearchResult]:
         """
         Search for similar code snippets.
@@ -257,6 +263,7 @@ class VectorStore:
             n_results: Number of results to return
             language: Filter by language
             file_path_filter: Filter by file path prefix
+            labels: Filter by labels (any match)
             
         Returns:
             List of SearchResult objects
@@ -274,6 +281,10 @@ class VectorStore:
             search = search.where(f"language = '{language}'")
         if file_path_filter:
             search = search.where(f"file_path LIKE '{file_path_filter}%'")
+        if labels:
+            # Match any of the provided labels
+            label_conditions = " OR ".join([f"labels LIKE '%{l}%'" for l in labels])
+            search = search.where(f"({label_conditions})")
         
         results = search.to_list()
         
@@ -284,6 +295,7 @@ class VectorStore:
                     "file_path": r["file_path"],
                     "language": r["language"],
                     "chunk_type": r["chunk_type"],
+                    "labels": r.get("labels", "").split(",") if r.get("labels") else [],
                     **json.loads(r.get("metadata_json", "{}")),
                 },
                 distance=r.get("_distance", 0.0),
@@ -291,6 +303,117 @@ class VectorStore:
             )
             for r in results
         ]
+    
+    # =========================================================================
+    # Label Management Methods
+    # =========================================================================
+    
+    async def add_labels(self, doc_id: str, labels: List[str]) -> bool:
+        """Add labels to an existing code entry."""
+        if self._code_table is None:
+            return False
+        
+        try:
+            results = self._code_table.search().where(f"id = '{doc_id}'").limit(1).to_list()
+            if not results:
+                return False
+            
+            existing = results[0].get("labels", "")
+            existing_set = set(existing.split(",")) if existing else set()
+            existing_set.update(labels)
+            existing_set.discard("")  # Remove empty strings
+            new_labels = ",".join(sorted(existing_set))
+            
+            self._code_table.update(
+                where=f"id = '{doc_id}'",
+                values={"labels": new_labels}
+            )
+            logger.debug(f"Added labels {labels} to {doc_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to add labels: {e}")
+            return False
+    
+    async def remove_labels(self, doc_id: str, labels: List[str]) -> bool:
+        """Remove labels from an existing code entry."""
+        if self._code_table is None:
+            return False
+        
+        try:
+            results = self._code_table.search().where(f"id = '{doc_id}'").limit(1).to_list()
+            if not results:
+                return False
+            
+            existing = results[0].get("labels", "")
+            existing_set = set(existing.split(",")) if existing else set()
+            existing_set -= set(labels)
+            existing_set.discard("")
+            new_labels = ",".join(sorted(existing_set))
+            
+            self._code_table.update(
+                where=f"id = '{doc_id}'",
+                values={"labels": new_labels}
+            )
+            logger.debug(f"Removed labels {labels} from {doc_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to remove labels: {e}")
+            return False
+    
+    async def get_labels(self) -> Dict[str, int]:
+        """Get all unique labels with counts."""
+        if self._code_table is None:
+            return {}
+        
+        try:
+            # Use to_arrow() to avoid pandas dependency
+            table_data = self._code_table.to_arrow()
+            label_counts: Dict[str, int] = {}
+            
+            if "labels" in table_data.column_names:
+                labels_column = table_data.column("labels").to_pylist()
+                for labels_str in labels_column:
+                    if labels_str:
+                        for label in labels_str.split(","):
+                            label = label.strip()
+                            if label:
+                                label_counts[label] = label_counts.get(label, 0) + 1
+            
+            return dict(sorted(label_counts.items(), key=lambda x: x[1], reverse=True))
+        except Exception as e:
+            logger.error(f"Failed to get labels: {e}")
+            return {}
+    
+    async def search_by_label(
+        self, label: str, n_results: int = 20
+    ) -> List[SearchResult]:
+        """Get entries by label without semantic search."""
+        if self._code_table is None:
+            return []
+        
+        try:
+            results = self._code_table.search().where(
+                f"labels LIKE '%{label}%'"
+            ).limit(n_results).to_list()
+            
+            return [
+                SearchResult(
+                    content=r["content"],
+                    metadata={
+                        "file_path": r["file_path"],
+                        "language": r["language"],
+                        "chunk_type": r["chunk_type"],
+                        "labels": r.get("labels", "").split(",") if r.get("labels") else [],
+                        **json.loads(r.get("metadata_json", "{}")),
+                    },
+                    distance=0.0,
+                    id=r["id"],
+                )
+                for r in results
+            ]
+        except Exception as e:
+            logger.error(f"Failed to search by label: {e}")
+            return []
     
     # =========================================================================
     # Documentation Collection Methods

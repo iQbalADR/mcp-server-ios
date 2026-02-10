@@ -130,3 +130,24 @@ debug:
   
   # Profile performance
   profile_performance: true
+
+# Auto-Labeling Configuration
+labels:
+  # Enable auto-detection of labels during ingestion
+  auto_detect: true
+  
+  # Custom path-based rules (added to built-in rules)
+  path_rules:
+    - pattern: "Coordinator/"
+      labels: [navigation, coordinator]
+    - pattern: "Repository/"
+      labels: [data, repository]
+    - pattern: "UseCase/"
+      labels: [domain, usecase]
+  
+  # Custom content-based rules (added to built-in rules)
+  content_rules:
+    - pattern: "import RealmSwift"
+      labels: [persistence, realm]
+    - pattern: "import FirebaseAuth"
+      labels: [auth, firebase]

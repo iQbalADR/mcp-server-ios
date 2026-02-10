@@ -124,6 +124,98 @@ class CodeChunker:
 
 
 # ============================================================================
+# Auto-Labeling
+# ============================================================================
+
+class AutoLabeler:
+    """Automatically detect labels for code based on file paths and content."""
+    
+    # Path-based rules: if path contains key, add these labels
+    PATH_RULES = {
+        "Views/": ["ui", "views"],
+        "View/": ["ui", "views"],
+        "UI/": ["ui"],
+        "Screen/": ["ui", "screens"],
+        "Screens/": ["ui", "screens"],
+        "Network/": ["networking"],
+        "Networking/": ["networking"],
+        "API/": ["networking", "api"],
+        "Service/": ["services"],
+        "Services/": ["services"],
+        "Model/": ["models", "data"],
+        "Models/": ["models", "data"],
+        "ViewModel/": ["viewmodel"],
+        "ViewModels/": ["viewmodel"],
+        "Test/": ["tests"],
+        "Tests/": ["tests"],
+        "Util/": ["utilities"],
+        "Utils/": ["utilities"],
+        "Utilities/": ["utilities"],
+        "Helper/": ["utilities"],
+        "Helpers/": ["utilities"],
+        "Extension/": ["extensions"],
+        "Extensions/": ["extensions"],
+        "Auth/": ["auth"],
+        "Authentication/": ["auth"],
+        "Core/": ["core"],
+        "Common/": ["core"],
+        "Config/": ["config"],
+        "Configuration/": ["config"],
+    }
+    
+    # Content-based rules: if content contains key, add these labels
+    CONTENT_RULES = {
+        "import SwiftUI": ["swiftui", "ui"],
+        "import UIKit": ["uikit", "ui"],
+        "import Combine": ["combine", "async"],
+        "import Foundation": ["foundation"],
+        "URLSession": ["networking"],
+        "URLRequest": ["networking"],
+        "Codable": ["models", "data"],
+        "CoreData": ["coredata", "persistence"],
+        "@Observable": ["swiftui", "state"],
+        "@State": ["swiftui", "state"],
+        "@Published": ["combine", "state"],
+        "XCTest": ["tests"],
+        "@testable": ["tests"],
+        "async func": ["async"],
+        "await ": ["async"],
+    }
+    
+    def __init__(self, extra_path_rules: Dict[str, List[str]] = None,
+                 extra_content_rules: Dict[str, List[str]] = None):
+        self.path_rules = {**self.PATH_RULES, **(extra_path_rules or {})}
+        self.content_rules = {**self.CONTENT_RULES, **(extra_content_rules or {})}
+    
+    def detect_labels(self, file_path: str, content: str = "") -> List[str]:
+        """Detect labels from file path and content."""
+        labels = set()
+        
+        # Extension-based labels
+        ext = Path(file_path).suffix.lower()
+        ext_map = {
+            ".swift": "swift", ".m": "objc", ".h": "objc",
+            ".py": "python", ".js": "javascript", ".ts": "typescript",
+            ".json": "json", ".yaml": "yaml", ".yml": "yaml",
+            ".md": "docs",
+        }
+        if ext in ext_map:
+            labels.add(ext_map[ext])
+        
+        # Path-based labels
+        for pattern, pattern_labels in self.path_rules.items():
+            if pattern in file_path:
+                labels.update(pattern_labels)
+        
+        # Content-based labels
+        for pattern, pattern_labels in self.content_rules.items():
+            if pattern in content:
+                labels.update(pattern_labels)
+        
+        return sorted(labels)
+
+
+# ============================================================================
 # Project Scanner
 # ============================================================================
 
@@ -185,17 +277,21 @@ class ProjectScanner:
 # ============================================================================
 
 class IngestionEngine:
-    """Main ingestion engine."""
+    """Main ingestion engine with auto-labeling support."""
     
     def __init__(
         self,
         vector_store: VectorStore,
         chunker: CodeChunker = None,
         scanner: ProjectScanner = None,
+        labeler: AutoLabeler = None,
+        manual_labels: List[str] = None,
     ):
         self.vector_store = vector_store
         self.chunker = chunker or CodeChunker()
         self.scanner = scanner or ProjectScanner()
+        self.labeler = labeler
+        self.manual_labels = manual_labels or []
         
         self._processed_files = 0
         self._processed_chunks = 0
@@ -269,6 +365,17 @@ class IngestionEngine:
             return []
         
         chunks = self.chunker.chunk_file(content, str(file_path))
+        
+        # Auto-detect labels if labeler is configured
+        if self.labeler:
+            file_labels = self.labeler.detect_labels(str(file_path), content)
+            # Merge with any manual labels
+            all_labels = sorted(set(file_labels + self.manual_labels))
+            for chunk in chunks:
+                chunk["labels"] = all_labels
+        elif self.manual_labels:
+            for chunk in chunks:
+                chunk["labels"] = self.manual_labels
         
         self._processed_files += 1
         self._processed_chunks += len(chunks)
@@ -361,6 +468,8 @@ async def main():
     parser.add_argument("--watch", action="store_true", help="Watch for file changes")
     parser.add_argument("--config", help="Path to config file", default="config.yaml")
     parser.add_argument("--clear", action="store_true", help="Clear existing code collection")
+    parser.add_argument("--labels", nargs="+", help="Manual labels to apply to all ingested code")
+    parser.add_argument("--no-auto-labels", action="store_true", help="Disable auto-labeling")
     
     args = parser.parse_args()
     
@@ -414,14 +523,30 @@ async def main():
         logger.info("Clearing existing code collection...")
         await store.clear_collection("code")
     
-    # Create scanner and engine
+    # Create scanner, labeler, and engine
     scanner = ProjectScanner(
         extensions=args.extensions,
         exclude_dirs=args.exclude_dirs,
     )
+    
+    # Setup auto-labeling
+    labeler = None
+    if not args.no_auto_labels:
+        label_config = config.get("labels", {})
+        extra_path_rules = {}
+        extra_content_rules = {}
+        for rule in label_config.get("path_rules", []):
+            extra_path_rules[rule["pattern"]] = rule["labels"]
+        for rule in label_config.get("content_rules", []):
+            extra_content_rules[rule["pattern"]] = rule["labels"]
+        labeler = AutoLabeler(extra_path_rules, extra_content_rules)
+        logger.info("Auto-labeling enabled")
+    
     engine = IngestionEngine(
         vector_store=store,
         scanner=scanner,
+        labeler=labeler,
+        manual_labels=args.labels or [],
     )
     
     # Ingest directory
