@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide - MCP Xcode Server</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --accent-red: #f85149;
+            --border-color: #30363d;
+            --code-bg: #1e2228;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--accent-blue);
+            margin: 2rem 0 1rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+        }
+
+        pre code {
+            color: var(--text-primary);
+        }
+
+        .step {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .step p {
+            margin-bottom: 0.75rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: rgba(210, 153, 34, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .alert-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .alert-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .prereq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .prereq {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .prereq .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prereq h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .prereq p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .command-block {
+            position: relative;
+        }
+
+        .copy-hint {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 3rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-buttons a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-buttons a:hover {
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🚀 Quick Start Guide</h1>
+        <p><a href="index.html">← Back to Documentation</a></p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Prerequisites</h2>
+            <div class="prereq-grid">
+                <div class="prereq">
+                    <div class="icon">🔨</div>
+                    <h4>Xcode 26.x</h4>
+                    <p>With MCP support</p>
+                </div>
+                <div class="prereq">
+                    <div class="icon">🦙</div>
+                    <h4>Ollama</h4>
+                    <p>ollama.ai/download</p>
+                </div>
+                <div class="prereq">
+                    <div class="icon">🐍</div>
+                    <h4>Python 3.10+</h4>
+                    <p>brew install python</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Setup Steps</h2>
+
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Clone & Navigate to Project</h3>
+                <p>Open Terminal and navigate to the project directory:</p>
+                <div class="command-block">
+                    <pre><code>cd /path/to/xcode-mcp-server</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Run Setup Script</h3>
+                <p>This creates the virtual environment, installs dependencies, and pulls Ollama models:</p>
+                <div class="command-block">
+                    <pre><code>chmod +x scripts/setup.sh
+./scripts/setup.sh</code></pre>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Note:</strong> This may take a few minutes to download the models (~5GB for llama3.1:8b).
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Create Custom iOS Models</h3>
+                <p>Create the specialized iOS Swift Architect models:</p>
+                <div class="command-block">
+                    <pre><code>./scripts/create_models.sh</code></pre>
+                </div>
+                <p>This creates:</p>
+                <ul style="color: var(--text-secondary); margin-left: 1.5rem;">
+                    <li><code>ios-swift-architect</code> - General iOS development</li>
+                    <li><code>swiftui-specialist</code> - SwiftUI focused</li>
+                    <li><code>ios-code-reviewer</code> - Code review mode</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Ingest Your Project</h3>
+                <p>Add your Xcode project to the vector database for context-aware assistance:</p>
+                <div class="command-block">
+                    <pre><code>python scripts/ingest_project.py /path/to/your/XcodeProject</code></pre>
+                </div>
+                <div class="alert alert-success">
+                    <strong>Tip:</strong> Use <code>--watch</code> flag to automatically re-ingest on file changes.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>Add Shell Aliases (Optional)</h3>
+                <p>Add these to your <code>~/.zshrc</code> for quick access from any project:</p>
+                <div class="command-block">
+                    <pre><code># Add to ~/.zshrc
+export MCP_SERVER_PATH="/path/to/xcode-mcp-server"
+alias mcp-ingest='$MCP_SERVER_PATH/venv/bin/python $MCP_SERVER_PATH/scripts/ingest_project.py .'
+alias mcp-watch='$MCP_SERVER_PATH/venv/bin/python $MCP_SERVER_PATH/scripts/ingest_project.py . --watch'
+alias mcp-search='$MCP_SERVER_PATH/venv/bin/python $MCP_SERVER_PATH/scripts/memory_search.py'
+alias mcp-server='$MCP_SERVER_PATH/scripts/start_server.sh'</code></pre>
+                </div>
+                <p>Then reload: <code>source ~/.zshrc</code></p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">6</div>
+                <h3>Start the MCP Server</h3>
+                <p>Start the server (keep this terminal open):</p>
+                <div class="command-block">
+                    <pre><code>./scripts/start_server.sh</code></pre>
+                </div>
+                <p>For debug mode:</p>
+                <div class="command-block">
+                    <pre><code>./scripts/start_server.sh --debug</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">7</div>
+                <h3>Test the Server</h3>
+                <p>Use the MCP Inspector to verify everything works:</p>
+                <div class="command-block">
+                    <pre><code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></pre>
+                </div>
+                <p>Or run a direct Python test:</p>
+                <div class="command-block">
+                    <pre><code>source venv/bin/activate
+python -c "
+import asyncio
+from server.mcp_server import XcodeMCPServer, load_config
+
+async def test():
+    config = load_config()
+    server = XcodeMCPServer(config)
+    await server.initialize()
+    print('Server ready!')
+    stats = await server.vector_store.get_stats()
+    print(f'Stats: {stats}')
+
+asyncio.run(test())
+"</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">8</div>
+                <h3>Connect Xcode 26+</h3>
+                <ol class="steps" style="color: var(--text-secondary); margin-left: 1rem;">
+                    <li>Start the HTTP server: <code>./scripts/start_http_server.sh</code></li>
+                    <li>Open <strong>Xcode → Settings → Intelligence</strong></li>
+                    <li>Click <strong>"Add Model Provider..."</strong> → <strong>"Locally Hosted"</strong></li>
+                    <li>Set Port: <strong>1234</strong>, click <strong>"Add"</strong></li>
+                    <li>Click into your provider and <strong>enable (✓) ios-swift-architect:latest</strong></li>
+                    <li>Enable <strong>Xcode Tools</strong> (binoculars icon) for project context</li>
+                </ol>
+                <div class="alert alert-info">
+                    <strong>Tip:</strong> Do NOT enable <code>nomic-embed-text</code> — it's an embedding model and
+                    cannot chat.
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Verify It's Working</h2>
+
+            <h3>Test Ollama</h3>
+            <pre><code># Check Ollama is running
+curl http://localhost:11434/api/tags
+
+# Test the custom model
+ollama run ios-swift-architect "Say hello as an iOS architect"</code></pre>
+
+            <h3>Test Memory Search</h3>
+            <pre><code># Interactive memory search
+python scripts/memory_search.py
+
+# Show stats
+python scripts/memory_search.py --stats</code></pre>
+
+            <h3>Check Logs</h3>
+            <pre><code># View server logs
+tail -f logs/mcp_server.log
+
+# View request/response log
+cat logs/requests.jsonl | head -20</code></pre>
+        </section>
+
+        <section>
+            <h2>Common Issues</h2>
+
+            <div class="alert alert-warning">
+                <strong>"Ollama server is not running"</strong><br>
+                <code>ollama serve</code>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>"Model not found"</strong><br>
+                <code>ollama pull llama3.1:8b</code> or run <code>./scripts/create_models.sh</code>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>"ModuleNotFoundError"</strong><br>
+                <code>source venv/bin/activate && pip install -r requirements.txt</code>
+            </div>
+        </section>
+
+        <div class="nav-buttons">
+            <a href="index.html">← Main Docs</a>
+            <a href="models.html">Custom Models →</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>MCP Xcode Server - Quick Start Guide</p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xcode Integration - MCP Xcode Server</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --border-color: #30363d;
+            --code-bg: #1e2228;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a365d 0%, #0d1f3c 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            margin: 2.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+        }
+
+        pre code {
+            color: var(--text-primary);
+        }
+
+        .integration-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .integration-card h3 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-available {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        .badge-future {
+            background: rgba(163, 113, 247, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .badge-recommended {
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .alert-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .steps {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .steps li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            width: 1.75rem;
+            height: 1.75rem;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        td code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 2rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-buttons a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+        }
+
+        .nav-buttons a:hover {
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔗 Xcode Integration Guide</h1>
+        <p><a href="index.html">← Back to Documentation</a></p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Integration Options</h2>
+            <p>There are several ways to use the MCP Xcode Server with your iOS development workflow:</p>
+        </section>
+
+        <!-- Option 1: Xcode 26+ Native -->
+        <div class="integration-card">
+            <h3>
+                <span>🛠️ Xcode 26+ Native Integration</span>
+                <span class="badge badge-available">Available Now</span>
+                <span class="badge badge-recommended">Recommended</span>
+            </h3>
+            <p>Connect directly to Xcode's AI Assistant using the locally hosted model provider.</p>
+
+            <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem;">Setup:</h4>
+            <ol class="steps">
+                <li>Start the HTTP server:
+                    <pre><code>./scripts/start_http_server.sh</code></pre>
+                </li>
+                <li>Open <strong>Xcode → Settings → Intelligence</strong> (⌘,)</li>
+                <li>Click <strong>"Add Model Provider..."</strong></li>
+                <li>Select <strong>"Locally Hosted"</strong></li>
+                <li>Set <strong>Port: 1234</strong> and Description: <strong>MCP Xcode Server</strong></li>
+                <li>Click <strong>"Add"</strong></li>
+            </ol>
+
+            <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem;">Model Selection:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Enable?</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ios-swift-architect:latest</code></td>
+                        <td>✅ Yes</td>
+                        <td>Custom iOS/Swift coding model — best for Xcode</td>
+                    </tr>
+                    <tr>
+                        <td><code>llama3.1:8b</code></td>
+                        <td>✅ Optional</td>
+                        <td>General purpose model, good fallback</td>
+                    </tr>
+                    <tr>
+                        <td><code>nomic-embed-text:latest</code></td>
+                        <td>❌ No</td>
+                        <td>Embedding model only — cannot chat or generate code</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="alert alert-info">
+                <strong>Important:</strong> After adding the provider, click into it and <strong>enable (checkmark) the
+                    models</strong>
+                you want to use. Then make sure your provider is selected as the active model in Xcode's Intelligence
+                settings.
+            </div>
+
+            <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem;">Also Enable Xcode Tools:</h4>
+            <p>Enable the built-in <strong>Xcode Tools (binoculars icon)</strong> in Intelligence settings.
+                This gives the AI access to your project structure, build system, and diagnostics.
+                It works alongside your locally hosted model — Xcode Tools provides context, your server provides
+                intelligence.</p>
+
+            <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem;">Verify It's Working:</h4>
+            <pre><code># Check server health
+curl http://localhost:1234/health
+
+# Check available models
+curl http://localhost:1234/v1/models
+
+# Check vector DB stats
+curl http://localhost:1234/mcp/stats
+
+# Test a chat request
+curl -X POST http://localhost:1234/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"ios-swift-architect:latest","messages":[{"role":"user","content":"Write a Swift hello world"}]}'</code></pre>
+
+            <div class="alert alert-success">
+                <strong>In Xcode:</strong> Open any Swift file, press <strong>⌥⌘/</strong> (Option+Command+/) to open
+                the AI Assistant,
+                and type a prompt. Watch your terminal for incoming request logs.
+            </div>
+        </div>
+
+        <!-- Option 2: Claude Desktop -->
+        <div class="integration-card">
+            <h3>
+                <span>🖥️ Claude Desktop</span>
+                <span class="badge badge-available">Available Now</span>
+            </h3>
+            <p>Use Claude Desktop as your MCP client to get AI assistance while coding in Xcode.</p>
+
+            <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem;">Setup:</h4>
+            <ol class="steps">
+                <li>Install <a href="https://claude.ai/download" style="color: var(--accent-blue);">Claude Desktop</a>
+                </li>
+                <li>Open Claude Desktop Settings → Developer → Edit Config</li>
+                <li>Add your MCP server configuration</li>
+            </ol>
+
+            <p>Add this to your <code>claude_desktop_config.json</code>:</p>
+            <pre><code>{
+  "mcpServers": {
+    "xcode-assistant": {
+      "command": "/path/to/xcode-mcp-server/venv/bin/python",
+      "args": ["-m", "server.mcp_server"],
+      "cwd": "/path/to/xcode-mcp-server"
+    }
+  }
+}</code></pre>
+
+            <div class="alert alert-success">
+                <strong>Workflow:</strong> Keep Claude Desktop open alongside Xcode. Copy code to Claude,
+                ask questions, and paste suggestions back. Claude will use your ingested codebase for context.
+            </div>
+        </div>
+
+        <!-- Option 3: MCP Inspector -->
+        <div class="integration-card">
+            <h3>
+                <span>🔍 MCP Inspector</span>
+                <span class="badge badge-available">Available Now</span>
+            </h3>
+            <p>Debug and test your MCP server interactively with the official inspector.</p>
+
+            <pre><code># Run the MCP Inspector
+npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></pre>
+
+            <p>This opens a web UI where you can:</p>
+            <ul style="color: var(--text-secondary); margin-left: 1.5rem;">
+                <li>Browse available tools</li>
+                <li>Execute tool calls manually</li>
+                <li>View responses and debug issues</li>
+            </ul>
+        </div>
+
+        <!-- Troubleshooting -->
+        <section>
+            <h2>Troubleshooting</h2>
+
+            <div class="alert alert-info">
+                <strong>"Unable to load models"</strong><br>
+                The server must be running before Xcode can discover models. Start with
+                <code>./scripts/start_http_server.sh</code>,
+                then click Refresh in Xcode Settings.
+            </div>
+
+            <div class="alert alert-info">
+                <strong>"Address already in use" (port 1234)</strong><br>
+                The updated start script auto-kills old processes. If it still fails, run:
+                <code>lsof -ti:1234 | xargs kill -9</code>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Xcode shows no activity in server logs</strong><br>
+                Xcode may be using its default model instead of yours. Make sure:<br>
+                1. Your provider is toggled ON in Intelligence settings<br>
+                2. A model is checkmarked (enabled) within your provider<br>
+                3. Your provider is selected as the active model for Coding Intelligence
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Slow first response (~20-30s)</strong><br>
+                This is normal — Ollama loads the model into GPU memory on first request. Subsequent responses will be
+                faster.
+            </div>
+        </section>
+
+        <!-- Workflow Tips -->
+        <section>
+            <h2>Recommended Workflow</h2>
+
+            <h3>1. Ingest Your Project</h3>
+            <p>Before starting, add your Xcode project to the vector database:</p>
+            <pre><code># From your Xcode project directory
+mcp-ingest
+
+# Or with full path
+python /path/to/xcode-mcp-server/scripts/ingest_project.py /path/to/MyApp</code></pre>
+
+            <h3>2. Start the Server</h3>
+            <pre><code># Start the HTTP server for Xcode
+./scripts/start_http_server.sh</code></pre>
+
+            <h3>3. Use in Xcode</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>How to Use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Generate code</td>
+                        <td>Press ⌥⌘/ in editor, describe what you need</td>
+                    </tr>
+                    <tr>
+                        <td>Explain code</td>
+                        <td>Select code, press ⌥⌘/ and ask "explain this"</td>
+                    </tr>
+                    <tr>
+                        <td>Fix errors</td>
+                        <td>With errors visible, ask the AI to fix them</td>
+                    </tr>
+                    <tr>
+                        <td>Ask questions</td>
+                        <td>Ask about your codebase — RAG provides context automatically</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4. Keep Memory Updated</h3>
+            <pre><code># Re-ingest after major changes
+mcp-ingest --clear</code></pre>
+        </section>
+
+        <section>
+            <h2>API Endpoints</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/health</code></td>
+                        <td>GET</td>
+                        <td>Server health check</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1/models</code></td>
+                        <td>GET</td>
+                        <td>List available models (OpenAI-compatible)</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1/chat/completions</code></td>
+                        <td>POST</td>
+                        <td>Chat completions with RAG context</td>
+                    </tr>
+                    <tr>
+                        <td><code>/mcp/tools</code></td>
+                        <td>GET</td>
+                        <td>List MCP tools</td>
+                    </tr>
+                    <tr>
+                        <td><code>/mcp/stats</code></td>
+                        <td>GET</td>
+                        <td>Vector store statistics</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div class="nav-buttons">
+            <a href="quickstart.html">← Quick Start</a>
+            <a href="models.html">Custom Models →</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>MCP Xcode Server - Xcode Integration Guide</p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Models - MCP Xcode Server</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --border-color: #30363d;
+            --code-bg: #1e2228;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        nav {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-right: 2rem;
+        }
+
+        nav a:hover {
+            color: var(--accent-blue);
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin: 1.5rem 0 1rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.9rem;
+        }
+
+        .model-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .model-card h3 {
+            margin-top: 0;
+            color: var(--accent-purple);
+        }
+
+        .model-card .badge {
+            display: inline-block;
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .expertise-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .expertise-list li {
+            background: var(--bg-tertiary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .expertise-list li::before {
+            content: "✓ ";
+            color: var(--accent-green);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-secondary);
+        }
+
+        .param {
+            color: var(--accent-orange);
+        }
+
+        .value {
+            color: var(--accent-green);
+        }
+
+        .comment {
+            color: var(--text-secondary);
+        }
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🎯 Custom Ollama Models</h1>
+        <p><a href="index.html">← Back to Documentation</a></p>
+    </header>
+
+    <nav>
+        <a href="#ios-architect">iOS Architect</a>
+        <a href="#swiftui">SwiftUI Specialist</a>
+        <a href="#reviewer">Code Reviewer</a>
+        <a href="#create">Creating Models</a>
+        <a href="#customize">Customization</a>
+    </nav>
+
+    <main>
+        <section>
+            <h2>Overview</h2>
+            <p>These Modelfiles create specialized Ollama models with expert iOS/Swift knowledge baked into their system
+                prompts. Each model is optimized for specific tasks.</p>
+
+            <pre><code><span class="comment"># Create all models at once</span>
+./scripts/create_models.sh
+
+<span class="comment"># Or create individually</span>
+ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></pre>
+        </section>
+
+        <section id="ios-architect">
+            <h2>iOS Swift Architect</h2>
+
+            <div class="model-card">
+                <h3>ios-swift-architect</h3>
+                <span class="badge">Recommended</span>
+                <span class="badge">General Purpose</span>
+
+                <p>The primary model for iOS development. Deep expertise in Swift, iOS frameworks, and architecture
+                    patterns.</p>
+
+                <h4>Expertise Areas</h4>
+                <ul class="expertise-list">
+                    <li>Swift 5.9+ (async/await, actors, macros)</li>
+                    <li>UIKit & SwiftUI</li>
+                    <li>Combine Framework</li>
+                    <li>Core Data & CloudKit</li>
+                    <li>ARKit & Core ML</li>
+                    <li>MVVM Architecture</li>
+                    <li>VIPER Architecture</li>
+                    <li>Clean Architecture</li>
+                    <li>The Composable Architecture (TCA)</li>
+                    <li>Protocol-Oriented Programming</li>
+                    <li>Dependency Injection</li>
+                    <li>Memory Management</li>
+                    <li>XCTest & TDD</li>
+                    <li>Swift Package Manager</li>
+                </ul>
+
+                <h4>Create Command</h4>
+                <pre><code>ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></pre>
+
+                <h4>Test It</h4>
+                <pre><code>ollama run ios-swift-architect "Create a Swift networking layer with async/await"</code></pre>
+            </div>
+        </section>
+
+        <section id="swiftui">
+            <h2>SwiftUI Specialist</h2>
+
+            <div class="model-card">
+                <h3>swiftui-specialist</h3>
+                <span class="badge">UI Focused</span>
+
+                <p>Specialized in SwiftUI development with modern declarative UI patterns for iOS/macOS/watchOS/tvOS.
+                </p>
+
+                <h4>Expertise Areas</h4>
+                <ul class="expertise-list">
+                    <li>@State, @Binding, @StateObject</li>
+                    <li>@Observable (iOS 17+)</li>
+                    <li>NavigationStack & NavigationSplitView</li>
+                    <li>Custom ViewModifiers</li>
+                    <li>ViewBuilders</li>
+                    <li>Animations & Transitions</li>
+                    <li>matchedGeometryEffect</li>
+                    <li>Custom Layout Protocol</li>
+                    <li>Gestures & Interactions</li>
+                    <li>Accessibility</li>
+                    <li>Dynamic Type</li>
+                    <li>Preview Macros</li>
+                </ul>
+
+                <h4>Create Command</h4>
+                <pre><code>ollama create swiftui-specialist -f models/Modelfile.swiftui</code></pre>
+
+                <h4>Test It</h4>
+                <pre><code>ollama run swiftui-specialist "Create a custom animated button with haptic feedback"</code></pre>
+            </div>
+        </section>
+
+        <section id="reviewer">
+            <h2>iOS Code Reviewer</h2>
+
+            <div class="model-card">
+                <h3>ios-code-reviewer</h3>
+                <span class="badge">Code Review</span>
+
+                <p>Specialized in reviewing iOS code for best practices, bugs, memory issues, and improvements.</p>
+
+                <h4>Review Priorities</h4>
+                <ul class="expertise-list">
+                    <li>Memory leaks & retain cycles</li>
+                    <li>Thread safety issues</li>
+                    <li>Main thread violations</li>
+                    <li>Error handling gaps</li>
+                    <li>Performance bottlenecks</li>
+                    <li>Security vulnerabilities</li>
+                    <li>Force unwrapping abuse</li>
+                    <li>Deprecated API usage</li>
+                    <li>Missing accessibility</li>
+                    <li>Testability issues</li>
+                    <li>Architecture violations</li>
+                    <li>Swift best practices</li>
+                </ul>
+
+                <h4>Create Command</h4>
+                <pre><code>ollama create ios-code-reviewer -f models/Modelfile.reviewer</code></pre>
+
+                <h4>Test It</h4>
+                <pre><code>ollama run ios-code-reviewer "Review this code: class ViewController: UIViewController { var delegate: MyDelegate? }"</code></pre>
+            </div>
+        </section>
+
+        <section id="create">
+            <h2>Creating Models</h2>
+
+            <h3>Quick Setup</h3>
+            <pre><code><span class="comment"># Make script executable</span>
+chmod +x scripts/create_models.sh
+
+<span class="comment"># Create all models</span>
+./scripts/create_models.sh</code></pre>
+
+            <h3>Manual Creation</h3>
+            <pre><code><span class="comment"># 1. Ensure base model exists</span>
+ollama pull llama3.1:8b
+
+<span class="comment"># 2. Create each model</span>
+ollama create ios-swift-architect -f models/Modelfile.ios-architect
+ollama create swiftui-specialist -f models/Modelfile.swiftui
+ollama create ios-code-reviewer -f models/Modelfile.reviewer
+
+<span class="comment"># 3. Verify</span>
+ollama list</code></pre>
+
+            <h3>Using with MCP Server</h3>
+            <p>Update <code>config.yaml</code>:</p>
+            <pre><code><span class="param">ollama:</span>
+  <span class="param">chat_model:</span> <span class="value">"ios-swift-architect"</span></code></pre>
+        </section>
+
+        <section id="customize">
+            <h2>Customization</h2>
+
+            <h3>Model Parameters</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>temperature</code></td>
+                        <td>0.1</td>
+                        <td>Lower = more deterministic code</td>
+                    </tr>
+                    <tr>
+                        <td><code>repeat_penalty</code></td>
+                        <td>1.1</td>
+                        <td>Reduces repetition in output</td>
+                    </tr>
+                    <tr>
+                        <td><code>num_ctx</code></td>
+                        <td>8192</td>
+                        <td>Context window size (tokens)</td>
+                    </tr>
+                    <tr>
+                        <td><code>top_p</code></td>
+                        <td>0.9</td>
+                        <td>Nucleus sampling threshold</td>
+                    </tr>
+                    <tr>
+                        <td><code>num_predict</code></td>
+                        <td>4096</td>
+                        <td>Max tokens to generate</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Alternative Base Models</h3>
+            <p>Change the <code>FROM</code> line in any Modelfile:</p>
+            <pre><code><span class="comment"># Smaller, faster</span>
+FROM codellama:7b
+
+<span class="comment"># Good balance (default)</span>
+FROM llama3.1:8b
+
+<span class="comment"># Larger, better quality</span>
+FROM codellama:34b
+
+<span class="comment"># Alternative code model</span>
+FROM deepseek-coder
+
+<span class="comment"># General purpose</span>
+FROM llama3.2:latest</code></pre>
+
+            <h3>Creating Your Own Model</h3>
+            <pre><code><span class="comment"># 1. Create a new Modelfile</span>
+touch models/Modelfile.my-model
+
+<span class="comment"># 2. Add content</span>
+cat &lt;&lt; 'EOF' > models/Modelfile.my-model
+FROM llama3.1:8b
+
+SYSTEM """Your custom expertise description..."""
+
+PARAMETER temperature 0.1
+PARAMETER num_ctx 8192
+EOF
+
+<span class="comment"># 3. Create the model</span>
+ollama create my-custom-model -f models/Modelfile.my-model
+
+<span class="comment"># 4. Test it</span>
+ollama run my-custom-model</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p>MCP Xcode Server - Custom Models Documentation</p>
+    </footer>
+</body>
+
+</html>

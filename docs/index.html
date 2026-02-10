@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Xcode Server - Documentation</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #a371f7;
+            --accent-orange: #d29922;
+            --accent-red: #f85149;
+            --border-color: #30363d;
+            --code-bg: #1e2228;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            padding: 0.5rem;
+        }
+
+        nav a:hover {
+            color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: var(--accent-blue);
+            margin: 1.5rem 0 1rem;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin: 1rem 0 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+        }
+
+        pre code {
+            color: var(--text-primary);
+        }
+
+        .code-comment {
+            color: var(--text-secondary);
+        }
+
+        .code-keyword {
+            color: var(--accent-purple);
+        }
+
+        .code-string {
+            color: var(--accent-orange);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+
+        .card h4 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .card .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        td code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .alert-warning {
+            background: rgba(210, 153, 34, 0.1);
+            border-color: var(--accent-orange);
+        }
+
+        .alert-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .alert strong {
+            color: var(--text-primary);
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            position: relative;
+            padding-left: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .architecture pre {
+            background: transparent;
+            border: none;
+            text-align: left;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .badge-blue {
+            background: rgba(88, 166, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .badge-green {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        .badge-purple {
+            background: rgba(163, 113, 247, 0.2);
+            color: var(--accent-purple);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+
+            main {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🧠 MCP Xcode Server</h1>
+        <p>Connect your local Ollama LLM to Xcode's AI Assistant with persistent memory using LanceDB</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#quickstart">Quick Start</a></li>
+            <li><a href="#models">Custom Models</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#memory">Memory</a></li>
+            <li><a href="#config">Configuration</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>This project creates a Model Context Protocol (MCP) server that bridges your local AI with Xcode's coding
+                assistant.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="icon">🦙</div>
+                    <h4>Ollama Integration</h4>
+                    <p>Use local LLMs like CodeLlama for code generation, explanation, and debugging.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🔧</div>
+                    <h4>Xcode AI Assistant</h4>
+                    <p>Seamlessly integrates with Xcode 26.x's built-in AI features via MCP protocol.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🧠</div>
+                    <h4>Persistent Memory</h4>
+                    <p>LanceDB vector database stores your code context for smarter responses.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🔒</div>
+                    <h4>Fully Local</h4>
+                    <p>Everything runs on your machine. No cloud dependencies, complete privacy.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture">
+            <h2>Architecture</h2>
+            <div class="architecture">
+                <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                         Your Mac                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   ┌─────────────────────┐                                       │
+│   │    Xcode 26.x       │                                       │
+│   │  ┌───────────────┐  │                                       │
+│   │  │ AI Assistant  │  │                                       │
+│   │  └───────┬───────┘  │                                       │
+│   └──────────┼──────────┘                                       │
+│              │ OpenAI-compatible API (port 1234)                  │
+│              ▼                                                   │
+│   ┌─────────────────────────────────────────────┐               │
+│   │         MCP Xcode Server (Python)           │               │
+│   │  ┌───────────────────────────────────────┐  │               │
+│   │  │              Tools                    │  │               │
+│   │  │  • generate_code    • explain_code    │  │               │
+│   │  │  • fix_code         • ask_with_context│  │               │
+│   │  │  • add_to_memory    • search_memory   │  │               │
+│   │  └───────────────────────────────────────┘  │               │
+│   └──────────┬──────────────────┬───────────────┘               │
+│              │                  │                                │
+│              ▼                  ▼                                │
+│   ┌──────────────────┐  ┌──────────────────┐                    │
+│   │     Ollama       │  │    LanceDB      │                    │
+│   │  (Local LLM)     │  │  (Vector DB)     │                    │
+│   └──────────────────┘  └──────────────────┘                    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quickstart">
+            <h2>Quick Start</h2>
+
+            <div class="alert alert-info">
+                <strong>Prerequisites:</strong> Xcode 26.x, Ollama, Python 3.10+
+            </div>
+
+            <ol class="steps">
+                <li>
+                    <h4>Run Setup Script</h4>
+                    <pre><code>./scripts/setup.sh</code></pre>
+                    <p>Creates virtual environment, installs dependencies, pulls models.</p>
+                </li>
+                <li>
+                    <h4>Create Custom Models</h4>
+                    <pre><code>./scripts/create_models.sh</code></pre>
+                    <p>Creates specialized iOS Swift Architect models.</p>
+                </li>
+                <li>
+                    <h4>Ingest Your Project</h4>
+                    <pre><code>python scripts/ingest_project.py /path/to/your/project</code></pre>
+                    <p>Adds your codebase to the vector database for context.</p>
+                </li>
+                <li>
+                    <h4>Start the Server</h4>
+                    <pre><code>./scripts/start_server.sh</code></pre>
+                    <p>Starts the MCP server with debugging enabled.</p>
+                </li>
+                <li>
+                    <h4>Test the Server</h4>
+                    <pre><code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></pre>
+                    <p>Or run directly: <code>./venv/bin/python -m server.mcp_server</code></p>
+                </li>
+            </ol>
+
+            <div class="alert alert-info">
+                <strong>Note:</strong> Native Xcode MCP integration requires a future Xcode version with MCP support.
+                For now, use the MCP Inspector or run the server directly for testing.
+            </div>
+        </section>
+
+        <!-- Custom Models Section -->
+        <section id="models">
+            <h2>Custom Ollama Models</h2>
+            <p>Specialized models with iOS/Swift expertise baked into their system prompts.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Best For</th>
+                        <th>Create Command</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ios-swift-architect</code></td>
+                        <td>General iOS development, architecture decisions</td>
+                        <td><code>ollama create ios-swift-architect -f models/Modelfile.ios-architect</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>swiftui-specialist</code></td>
+                        <td>SwiftUI views, declarative UI patterns</td>
+                        <td><code>ollama create swiftui-specialist -f models/Modelfile.swiftui</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>ios-code-reviewer</code></td>
+                        <td>Code review, finding bugs, improvements</td>
+                        <td><code>ollama create ios-code-reviewer -f models/Modelfile.reviewer</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>iOS Swift Architect Expertise</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Swift Language</h4>
+                    <p>Swift 5.9+, async/await, actors, macros, property wrappers, result builders</p>
+                </div>
+                <div class="card">
+                    <h4>iOS Frameworks</h4>
+                    <p>UIKit, SwiftUI, Combine, Core Data, CloudKit, ARKit, Core ML, Vision</p>
+                </div>
+                <div class="card">
+                    <h4>Architecture</h4>
+                    <p>MVVM, VIPER, Clean Architecture, TCA, Redux-like patterns</p>
+                </div>
+                <div class="card">
+                    <h4>Best Practices</h4>
+                    <p>Protocol-Oriented, Dependency Injection, Memory Management, Testing</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools Section -->
+        <section id="tools">
+            <h2>Available Tools</h2>
+            <p>MCP tools exposed to Xcode's AI Assistant:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>generate_code</code></td>
+                        <td>Generate code from natural language with RAG context</td>
+                    </tr>
+                    <tr>
+                        <td><code>explain_code</code></td>
+                        <td>Explain what code does in plain English</td>
+                    </tr>
+                    <tr>
+                        <td><code>fix_code</code></td>
+                        <td>Fix broken code based on error messages</td>
+                    </tr>
+                    <tr>
+                        <td><code>ask_with_context</code></td>
+                        <td>Ask any question with codebase context</td>
+                    </tr>
+                    <tr>
+                        <td><code>add_to_memory</code></td>
+                        <td>Add code/docs/notes to persistent memory</td>
+                    </tr>
+                    <tr>
+                        <td><code>search_memory</code></td>
+                        <td>Search through your code notebook</td>
+                    </tr>
+                    <tr>
+                        <td><code>get_memory_stats</code></td>
+                        <td>Get vector database statistics</td>
+                    </tr>
+                    <tr>
+                        <td><code>clear_memory</code></td>
+                        <td>Clear a memory collection</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Memory Section -->
+        <section id="memory">
+            <h2>Memory / Notebook Feature</h2>
+            <p>The "notebook" uses LanceDB to maintain persistent memory across sessions.</p>
+
+            <h3>Collections</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <span class="badge badge-blue">Code</span>
+                    <h4>Code Memory</h4>
+                    <p>Stores code snippets from your projects for contextual retrieval.</p>
+                </div>
+                <div class="card">
+                    <span class="badge badge-green">Docs</span>
+                    <h4>Documentation</h4>
+                    <p>Stores comments, documentation, and your notes.</p>
+                </div>
+                <div class="card">
+                    <span class="badge badge-purple">History</span>
+                    <h4>Conversation History</h4>
+                    <p>Stores past Q&A for improved context over time.</p>
+                </div>
+            </div>
+
+            <h3>Memory Search</h3>
+            <pre><code><span class="code-comment"># Interactive mode</span>
+python scripts/memory_search.py
+
+<span class="code-comment"># Direct search</span>
+python scripts/memory_search.py --query <span class="code-string">"authentication"</span>
+
+<span class="code-comment"># Show statistics</span>
+python scripts/memory_search.py --stats
+
+<span class="code-comment"># Export backup</span>
+python scripts/memory_search.py --export backup.json</code></pre>
+        </section>
+
+        <!-- Configuration Section -->
+        <section id="config">
+            <h2>Configuration</h2>
+            <p>Edit <code>config.yaml</code> to customize the server:</p>
+
+            <h3>Ollama Settings</h3>
+            <pre><code><span class="code-keyword">ollama:</span>
+  <span class="code-keyword">base_url:</span> <span class="code-string">"http://localhost:11434"</span>
+  <span class="code-keyword">chat_model:</span> <span class="code-string">"ios-swift-architect"</span>
+  <span class="code-keyword">embedding_model:</span> <span class="code-string">"nomic-embed-text"</span>
+  <span class="code-keyword">temperature:</span> 0.1
+  <span class="code-keyword">max_tokens:</span> 4096</code></pre>
+
+            <h3>LanceDB Settings</h3>
+            <pre><code><span class="code-keyword">lancedb:</span>
+  <span class="code-keyword">db_path:</span> <span class="code-string">"./data/lancedb"</span>
+  <span class="code-keyword">max_results:</span> 10
+  <span class="code-keyword">similarity_threshold:</span> 0.7</code></pre>
+
+            <h3>Debug Settings</h3>
+            <pre><code><span class="code-keyword">debug:</span>
+  <span class="code-keyword">enabled:</span> <span class="code-keyword">true</span>
+  <span class="code-keyword">save_requests:</span> <span class="code-keyword">true</span>
+  <span class="code-keyword">request_log:</span> <span class="code-string">"./logs/requests.jsonl"</span></code></pre>
+        </section>
+
+        <!-- File Structure Section -->
+        <section id="files">
+            <h2>Project Structure</h2>
+            <pre><code>xcode-mcp-server/
+├── config.yaml              <span class="code-comment"># Configuration</span>
+├── requirements.txt         <span class="code-comment"># Python dependencies</span>
+├── README.md                <span class="code-comment"># Documentation</span>
+│
+├── server/                  <span class="code-comment"># Main server package</span>
+│   ├── mcp_server.py        <span class="code-comment"># MCP protocol server</span>
+│   ├── ollama_client.py     <span class="code-comment"># Ollama integration</span>
+│   └── vector_store.py      <span class="code-comment"># LanceDB wrapper</span>
+│
+├── models/                  <span class="code-comment"># Custom Ollama Modelfiles</span>
+│   ├── Modelfile.ios-architect
+│   ├── Modelfile.swiftui
+│   └── Modelfile.reviewer
+│
+├── scripts/                 <span class="code-comment"># Helper scripts</span>
+│   ├── setup.sh             <span class="code-comment"># Initial setup</span>
+│   ├── start_server.sh      <span class="code-comment"># Start server</span>
+│   ├── create_models.sh     <span class="code-comment"># Create custom models</span>
+│   ├── ingest_project.py    <span class="code-comment"># Ingest code files</span>
+│   └── memory_search.py     <span class="code-comment"># Search memory</span>
+│
+├── docs/                    <span class="code-comment"># HTML documentation</span>
+│   └── index.html           <span class="code-comment"># This file</span>
+│
+├── data/                    <span class="code-comment"># Data storage</span>
+│   └── lancedb/            <span class="code-comment"># Vector database</span>
+│
+└── logs/                    <span class="code-comment"># Log files</span></code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p>MCP Xcode Server • Built with Ollama + LanceDB</p>
+        <p>Made for iOS developers who want local, private AI assistance</p>
+    </footer>
+</body>
+
+</html>

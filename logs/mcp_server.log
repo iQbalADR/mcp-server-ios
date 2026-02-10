@@ -1,0 +1,390 @@
+2026-02-09 16:24:52.909 | INFO     | __main__:main:536 - ==================================================
+2026-02-09 16:24:52.909 | INFO     | __main__:main:537 - MCP Xcode Server with LanceDB
+2026-02-09 16:24:52.909 | INFO     | __main__:main:538 - ==================================================
+2026-02-09 16:24:52.909 | INFO     | __main__:initialize:264 - Initializing MCP Server...
+2026-02-09 16:24:52.909 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-09 16:24:52.932 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-09 16:24:52.940 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-09 16:24:53.232 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-09 16:24:53.269 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-09 16:24:53.269 | INFO     | __main__:initialize:289 - MCP Server initialized!
+2026-02-09 16:24:53.272 | INFO     | __main__:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-09 16:24:53.272 | INFO     | __main__:run:516 - Starting MCP server on stdio...
+2026-02-09 16:24:53.272 | INFO     | __main__:run:517 - Waiting for Xcode connections...
+2026-02-10 09:23:43.794 | INFO     | __main__:main:536 - ==================================================
+2026-02-10 09:23:43.794 | INFO     | __main__:main:537 - MCP Xcode Server with LanceDB
+2026-02-10 09:23:43.794 | INFO     | __main__:main:538 - ==================================================
+2026-02-10 09:23:43.794 | INFO     | __main__:initialize:264 - Initializing MCP Server...
+2026-02-10 09:23:43.794 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:23:43.813 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:23:43.822 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:23:44.395 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:23:44.433 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:23:44.433 | INFO     | __main__:initialize:289 - MCP Server initialized!
+2026-02-10 09:23:44.436 | INFO     | __main__:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:23:44.436 | INFO     | __main__:run:516 - Starting MCP server on stdio...
+2026-02-10 09:23:44.436 | INFO     | __main__:run:517 - Waiting for Xcode connections...
+2026-02-10 09:31:38.320 | INFO     | __main__:main:349 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:31:38.321 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:31:38.321 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:31:38.366 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:31:38.377 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:31:38.980 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:31:39.019 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:31:39.020 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:31:39.022 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:31:39.023 | INFO     | __main__:start:329 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:31:39.023 | INFO     | __main__:start:330 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:31:39.023 | INFO     | __main__:start:331 -    Port: 1234
+2026-02-10 09:33:32.456 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:33:35.274 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:33:36.671 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:42:46.607 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:43:49.922 | INFO     | __main__:main:356 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:43:49.923 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:43:49.923 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:43:49.962 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:43:49.974 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:43:50.606 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:43:50.613 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:43:50.613 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:43:50.613 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:43:50.615 | INFO     | __main__:start:336 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:43:50.615 | INFO     | __main__:start:337 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:43:50.615 | INFO     | __main__:start:338 -    Port: 1234
+2026-02-10 09:43:57.603 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:46:01.670 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:49:41.538 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:49:41.609 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:49:42.397 | DEBUG    | server.ollama_client:chat:207 - Chat request with 2 messages
+2026-02-10 09:49:42.397 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: Write a one-line Swift hello world...
+2026-02-10 09:50:05.619 | INFO     | server.ollama_client:chat:235 - Chat completed in 23.22s, 24 chars
+2026-02-10 09:51:13.723 | DEBUG    | server.ollama_client:chat:207 - Chat request with 2 messages
+2026-02-10 09:51:13.724 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: What files are in the vector database?...
+2026-02-10 09:51:25.630 | INFO     | server.ollama_client:chat:235 - Chat completed in 11.91s, 910 chars
+2026-02-10 09:52:17.414 | INFO     | __main__:main:356 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:52:17.415 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:52:17.415 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:52:17.448 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:52:17.458 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:52:17.676 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:52:17.704 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:52:17.704 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:52:17.707 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:53:20.262 | INFO     | __main__:main:356 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:53:20.263 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:53:20.263 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:53:20.297 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:53:20.306 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:53:20.522 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:53:20.555 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:53:20.556 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:53:20.558 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:53:20.559 | INFO     | __main__:start:336 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:53:20.559 | INFO     | __main__:start:337 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:53:20.560 | INFO     | __main__:start:338 -    Port: 1234
+2026-02-10 09:53:36.770 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 09:53:49.927 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 1/3), retrying in 2.0s...
+2026-02-10 09:53:51.934 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 2/3), retrying in 4.0s...
+2026-02-10 09:53:55.948 | ERROR    | server.vector_store:ollama_embed:562 - Embedding request failed after 3 attempts: Client error '400 Bad Request' for url 'http://localhost:11434/api/embeddings'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:53:56.049 | ERROR    | __main__:_handle_chat:179 - Chat error: 'NoneType' object has no attribute 'method'
+2026-02-10 09:55:03.438 | INFO     | __main__:main:360 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:55:03.439 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:55:03.439 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:55:03.473 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:55:03.486 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:55:03.663 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:55:03.668 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:55:03.668 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:55:03.668 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:55:03.669 | INFO     | __main__:start:340 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:55:03.669 | INFO     | __main__:start:341 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:55:03.669 | INFO     | __main__:start:342 -    Port: 1234
+2026-02-10 09:55:14.134 | DEBUG    | server.ollama_client:chat:207 - Chat request with 2 messages
+2026-02-10 09:55:14.134 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: Write a simple Swift struct...
+2026-02-10 09:55:24.849 | INFO     | server.ollama_client:chat:235 - Chat completed in 10.71s, 295 chars
+2026-02-10 09:58:10.839 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 1/3), retrying in 2.0s...
+2026-02-10 09:58:12.845 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 2/3), retrying in 4.0s...
+2026-02-10 09:58:16.852 | ERROR    | server.vector_store:ollama_embed:562 - Embedding request failed after 3 attempts: Client error '400 Bad Request' for url 'http://localhost:11434/api/embeddings'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:58:16.944 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 09:58:16.944 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: [{'text': "The user is currently inside this file: SplashScreenViewModel.swift\n\nThe user has no code selected.\n\nThe following issues have been reported in the code:\n\nerror: Unable to find module dependency: 'Testing'\nimport Testing\n       ^\n\n\nThe user has asked:\n\ncreate splash screen\n", 'type': 'text'}]...
+2026-02-10 09:58:16.950 | ERROR    | server.ollama_client:chat:243 - Chat request failed: Client error '400 Bad Request' for url 'http://localhost:11434/api/chat'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:58:16.950 | ERROR    | __main__:_handle_chat:182 - Chat error: Client error '400 Bad Request' for url 'http://localhost:11434/api/chat'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:58:25.107 | INFO     | __main__:main:360 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:58:25.108 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:58:25.108 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:58:25.143 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:58:25.153 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:58:25.365 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:58:25.370 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:58:25.371 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:58:25.371 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:58:25.372 | INFO     | __main__:start:340 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:58:25.373 | INFO     | __main__:start:341 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:58:25.373 | INFO     | __main__:start:342 -    Port: 1234
+2026-02-10 09:58:50.723 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 1/3), retrying in 2.0s...
+2026-02-10 09:58:52.734 | WARNING  | server.vector_store:ollama_embed:559 - Embedding request failed (attempt 2/3), retrying in 4.0s...
+2026-02-10 09:58:56.746 | ERROR    | server.vector_store:ollama_embed:562 - Embedding request failed after 3 attempts: Client error '400 Bad Request' for url 'http://localhost:11434/api/embeddings'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:58:56.786 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 09:58:56.786 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: [{'text': "The user is currently inside this file: SplashScreenViewModel.swift\n\nThe user has no code selected.\n\nThe following issues have been reported in the code:\n\nerror: Unable to find module dependency: 'Testing'\nimport Testing\n       ^\n\n\nThe user has asked:\n\ncreate splash screen\n", 'type': 'text'}]...
+2026-02-10 09:58:56.790 | ERROR    | server.ollama_client:chat:243 - Chat request failed: Client error '400 Bad Request' for url 'http://localhost:11434/api/chat'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:58:56.790 | ERROR    | __main__:_handle_chat:182 - Chat error: Client error '400 Bad Request' for url 'http://localhost:11434/api/chat'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+2026-02-10 09:59:45.158 | INFO     | __main__:main:373 - Initializing MCP Xcode HTTP Server...
+2026-02-10 09:59:45.158 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 09:59:45.158 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 09:59:45.192 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 09:59:45.202 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 09:59:45.428 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 09:59:45.432 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 09:59:45.432 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 09:59:45.432 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 09:59:45.432 | INFO     | __main__:start:353 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 09:59:45.433 | INFO     | __main__:start:354 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 09:59:45.433 | INFO     | __main__:start:355 -    Port: 1234
+2026-02-10 09:59:56.920 | DEBUG    | server.ollama_client:chat:207 - Chat request with 2 messages
+2026-02-10 09:59:56.921 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: Write a simple Swift hello world...
+2026-02-10 10:00:05.805 | INFO     | server.ollama_client:chat:235 - Chat completed in 8.88s, 136 chars
+2026-02-10 10:32:04.727 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:32:04.727 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user is currently inside this file: SplashScreenViewModel.swift
+
+The user has no code selected.
+
+The following issues have been reported in the code:
+
+error: Unable to find module dependency: 'Tes...
+2026-02-10 10:32:27.177 | INFO     | server.ollama_client:chat:235 - Chat completed in 22.45s, 738 chars
+2026-02-10 10:32:28.032 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:32:28.032 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:Main.swift
+import XCTest
+
+// Then write tests in a similar to the format shown below.
+
+```
+
+```swift:demoo_ollamaTests...
+2026-02-10 10:32:36.015 | INFO     | __main__:main:373 - Initializing MCP Xcode HTTP Server...
+2026-02-10 10:32:36.016 | INFO     | server.mcp_server:initialize:264 - Initializing MCP Server...
+2026-02-10 10:32:36.016 | DEBUG    | server.ollama_client:__init__:87 - OllamaClient initialized with base_url=http://localhost:11434
+2026-02-10 10:32:36.049 | DEBUG    | server.ollama_client:_ensure_client:105 - HTTP client initialized
+2026-02-10 10:32:36.057 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 10:32:36.301 | INFO     | server.vector_store:create_vector_store_with_ollama:570 - Detected embedding dimension: 768
+2026-02-10 10:32:36.307 | INFO     | server.vector_store:__init__:110 - VectorStore initialized at data/lancedb
+2026-02-10 10:32:36.307 | INFO     | server.mcp_server:initialize:289 - MCP Server initialized!
+2026-02-10 10:32:36.308 | INFO     | server.mcp_server:initialize:291 - Vector store stats: {'code_count': 2627, 'docs_count': 0, 'history_count': 0}
+2026-02-10 10:32:36.309 | INFO     | __main__:start:353 - 🚀 MCP Xcode HTTP Server running on http://127.0.0.1:1234
+2026-02-10 10:32:36.309 | INFO     | __main__:start:354 -    Add to Xcode: Settings → Intelligence → Add Provider → Locally Hosted
+2026-02-10 10:32:36.309 | INFO     | __main__:start:355 -    Port: 1234
+2026-02-10 10:34:41.209 | DEBUG    | server.ollama_client:is_healthy:125 - Ollama health check: True
+2026-02-10 10:34:41.708 | DEBUG    | server.ollama_client:chat:207 - Chat request with 2 messages
+2026-02-10 10:34:41.708 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: say hi...
+2026-02-10 10:34:55.980 | INFO     | server.ollama_client:chat:235 - Chat completed in 14.27s, 147 chars
+2026-02-10 10:35:42.308 | DEBUG    | server.ollama_client:list_models:145 - Found 3 models
+2026-02-10 10:35:54.088 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:35:54.088 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user is currently inside this file: SplashScreenViewModel.swift
+The contents are below:
+```swift:SplashScreenViewModel.swift
+class SplashScreenViewModel: ObservableObject {
+    @Published private(...
+2026-02-10 10:36:12.436 | INFO     | server.ollama_client:chat:235 - Chat completed in 18.35s, 623 chars
+2026-02-10 10:36:12.880 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:36:12.880 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:SplashScreenView.swift
+// SplashScreenView.swift
+
+import SwiftUI
+
+struct SplashScreen: View {
+    @State private var l...
+2026-02-10 10:36:38.428 | INFO     | server.ollama_client:chat:235 - Chat completed in 25.55s, 2266 chars
+2026-02-10 10:36:38.940 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:36:38.940 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:detailView.swift
+//
+//  DetailView.swift
+//  demooollama
+//
+//  Created by [username] on [date].
+
+import SwiftUI
+
+stru...
+2026-02-10 10:37:03.657 | INFO     | server.ollama_client:chat:235 - Chat completed in 24.72s, 1787 chars
+2026-02-10 10:37:04.353 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:37:04.354 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:SplashView.swift
+// SplashView.swift
+
+import SwiftUI
+
+struct SplashView: View {
+    var body: some View {
+        VSta...
+2026-02-10 10:37:17.902 | INFO     | server.ollama_client:chat:235 - Chat completed in 13.55s, 950 chars
+2026-02-10 10:50:51.202 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:50:51.202 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user is currently inside this file: ContentView.swift
+The contents are below:
+```swift:ContentView.swift
+//
+//  ContentView.swift
+//  com.olla-mcp-server.id
+//
+//  Created by 65419 on 10/02/26.
+//...
+2026-02-10 10:51:37.706 | INFO     | server.ollama_client:chat:235 - Chat completed in 46.50s, 2874 chars
+2026-02-10 10:51:43.801 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:51:43.802 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:HomeView.swift
+//
+//  HomeView.swift
+//  com.olla-mcp-server.id
+//
+//  Created by 65419 on 10/02/26.
+//
+
+import SwiftU...
+2026-02-10 10:52:44.027 | INFO     | server.ollama_client:chat:235 - Chat completed in 60.22s, 3614 chars
+2026-02-10 10:52:46.668 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:52:46.669 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:com_olla_mcp_server_idTests.swift
+//
+//  com_olla_mcp_server_idTests.swift
+//  com.olla-mcp-server.idTests
+//
+//  Crea...
+2026-02-10 10:54:11.634 | INFO     | server.ollama_client:chat:235 - Chat completed in 84.96s, 6575 chars
+2026-02-10 10:54:15.423 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 10:54:15.423 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:SceneDelegate.swift
+import UIKit
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?...
+2026-02-10 10:55:19.352 | INFO     | server.ollama_client:chat:235 - Chat completed in 63.93s, 4518 chars
+2026-02-10 11:05:54.385 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:05:54.386 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user is currently inside this file: ContentView.swift
+The contents are below:
+```swift:ContentView.swift
+//
+//  ContentView.swift
+//  com.olla-mcp-server.id
+//
+//  Created by 65419 on 10/02/26.
+//...
+2026-02-10 11:06:17.251 | INFO     | server.ollama_client:chat:235 - Chat completed in 22.86s, 587 chars
+2026-02-10 11:06:18.172 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:06:18.173 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:LoginView.swift
+//
+//  LoginView.swift
+//  com.olla-mcp-server.id
+//
+//  Created by 65419 on 10/02/26.
+//
+
+import Swif...
+2026-02-10 11:06:33.285 | INFO     | server.ollama_client:chat:235 - Chat completed in 15.11s, 175 chars
+2026-02-10 11:06:34.351 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:06:34.351 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+```swift:HomeViewController.swift
+// ...
+
+override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    // Update the logout b...
+2026-02-10 11:06:44.025 | INFO     | server.ollama_client:chat:235 - Chat completed in 9.67s, 272 chars
+2026-02-10 11:06:44.476 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:06:44.476 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+
+No new search results found.
+Maximum search attempts reached. Do not send additional ##SEARCH: tags.
+
+The user has asked:
+
+ple...
+2026-02-10 11:06:51.696 | INFO     | server.ollama_client:chat:235 - Chat completed in 7.22s, 244 chars
+2026-02-10 11:08:06.021 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:08:06.022 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user is currently inside this file: HomeViewController.swift
+
+The user has no code selected.
+
+The following issues have been reported in the code:
+
+error: 'override' can only be specified on class...
+2026-02-10 11:08:31.963 | INFO     | server.ollama_client:chat:235 - Chat completed in 25.94s, 2218 chars
+2026-02-10 11:08:32.791 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:08:32.791 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+
+No new search results found.
+
+The user has asked:
+
+please check @``file:com.olla-mcp-server.id/HomeViewController.swift`` impl...
+2026-02-10 11:08:42.200 | INFO     | server.ollama_client:chat:235 - Chat completed in 9.41s, 389 chars
+2026-02-10 11:08:42.935 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:08:42.935 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+
+No new search results found.
+
+The user has asked:
+
+please check @``file:com.olla-mcp-server.id/HomeViewController.swift`` impl...
+2026-02-10 11:08:46.118 | INFO     | server.ollama_client:chat:235 - Chat completed in 3.18s, 381 chars
+2026-02-10 11:08:46.533 | DEBUG    | server.ollama_client:chat:207 - Chat request with 3 messages
+2026-02-10 11:08:46.533 | DEBUG    | server.ollama_client:chat:210 - Prompt preview: The user has no code selected.
+
+Your search results are provided below:
+
+
+No new search results found.
+Maximum search attempts reached. Do not send additional ##SEARCH: tags.
+
+The user has asked:
+
+ple...
+2026-02-10 11:08:53.757 | INFO     | server.ollama_client:chat:235 - Chat completed in 7.22s, 371 chars

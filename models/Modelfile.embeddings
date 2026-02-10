@@ -1,0 +1,22 @@
+# iOS Embeddings Model Configuration
+# ===================================
+#
+# This Modelfile creates an embedding model optimized for iOS/Swift code.
+# While we use the standard nomic-embed-text, this documents the configuration.
+#
+# For code embeddings, we want the model to understand:
+# - Swift syntax and semantics
+# - iOS framework terminology
+# - Common iOS patterns and architectures
+#
+# Note: Custom embedding models require fine-tuning which is beyond Ollama's
+# current capabilities. Use nomic-embed-text or mxbai-embed-large for now.
+
+FROM nomic-embed-text
+
+# Embedding models typically don't need system prompts, but this documents intent
+SYSTEM """Generate semantic embeddings for iOS/Swift code that capture:
+- Function and class purpose
+- Architectural patterns used
+- Framework dependencies
+- Code relationships and similarities"""

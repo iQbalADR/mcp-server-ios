@@ -1,0 +1,132 @@
+# MCP Xcode Server Configuration
+# ================================
+
+# Ollama Configuration
+ollama:
+  # Ollama server URL (default local)
+  base_url: "http://localhost:11434"
+  
+  # Primary model for chat/code generation
+  # Custom models (run ./scripts/create_models.sh first):
+  #   - ios-swift-architect   (recommended for iOS development)
+  #   - swiftui-specialist    (SwiftUI focused)
+  #   - ios-code-reviewer     (code review mode)
+  # Standard models (base: llama3.1:8b):
+  #   - llama3.1:8b
+  #   - codellama:13b
+  chat_model: "ios-swift-architect"
+  
+  # Model for generating embeddings
+  # Options: nomic-embed-text, mxbai-embed-large, all-minilm
+  embedding_model: "nomic-embed-text"
+  
+  # Request timeout in seconds
+  timeout: 120
+  
+  # Temperature for generation (0.0 = deterministic, 1.0 = creative)
+  temperature: 0.1
+  
+  # Maximum tokens to generate
+  max_tokens: 4096
+
+# LanceDB Vector Database Configuration
+lancedb:
+  # Persistence directory for vector database
+  db_path: "./data/lancedb"
+  
+  # Maximum number of results to retrieve
+  max_results: 10
+
+# MCP Server Configuration
+server:
+  # Server name (shown in MCP clients)
+  name: "xcode-mcp-server"
+  
+  # Server version
+  version: "1.0.0"
+  
+  # Transport type: stdio or sse
+  transport: "stdio"
+  
+  # SSE port (only used if transport is sse)
+  sse_port: 8765
+
+# RAG (Retrieval-Augmented Generation) Configuration
+rag:
+  # Chunk size for document splitting (characters)
+  chunk_size: 1000
+  
+  # Overlap between chunks (characters)
+  chunk_overlap: 200
+  
+  # Number of context chunks to include in prompts
+  context_chunks: 5
+  
+  # Include file path in context
+  include_file_paths: true
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "DEBUG"
+  
+  # Log file path
+  file: "./logs/mcp_server.log"
+  
+  # Enable console logging
+  console: true
+  
+  # Log format
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}"
+
+# File Ingestion Configuration
+ingestion:
+  # File extensions to process
+  extensions:
+    - ".swift"
+    - ".m"
+    - ".h"
+    - ".mm"
+    - ".cpp"
+    - ".c"
+    - ".py"
+    - ".js"
+    - ".ts"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".md"
+    - ".txt"
+  
+  # Directories to exclude
+  exclude_dirs:
+    - ".git"
+    - ".build"
+    - "build"
+    - "DerivedData"
+    - "Pods"
+    - "node_modules"
+    - ".swiftpm"
+    - "__pycache__"
+    - ".venv"
+    - "venv"
+  
+  # Maximum file size to process (bytes)
+  max_file_size: 1048576  # 1MB
+
+# Debug Configuration
+debug:
+  # Enable debug mode
+  enabled: true
+  
+  # Save all requests/responses to file
+  save_requests: true
+  
+  # Request log file
+  request_log: "./logs/requests.jsonl"
+  
+  # Enable verbose MCP protocol logging
+  verbose_mcp: true
+  
+  # Profile performance
+  profile_performance: true
