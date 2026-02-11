@@ -21,6 +21,9 @@ NC='\033[0m'
 # Port (default 1234)
 PORT="${1:-1234}"
 
+# Watch Directory (optional)
+WATCH_DIR="$2"
+
 cd "$PROJECT_DIR"
 
 # Activate virtual environment
@@ -60,8 +63,16 @@ echo -e "    4. Set Port: ${GREEN}${PORT}${NC}"
 echo "    5. Set Description: MCP Xcode Server"
 echo "    6. Click 'Add'"
 echo ""
+if [ ! -z "$WATCH_DIR" ]; then
+    echo -e "${YELLOW}👀 Auto-Sync Enabled for: ${GREEN}${WATCH_DIR}${NC}"
+fi
+echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
 # Start server
-python -m server.http_server --port "$PORT"
+if [ -z "$WATCH_DIR" ]; then
+    python -m server.http_server --port "$PORT"
+else
+    python -m server.http_server --port "$PORT" --watch "$WATCH_DIR"
+fi

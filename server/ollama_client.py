@@ -173,8 +173,9 @@ class OllamaClient:
         prompt: str,
         system_prompt: Optional[str] = None,
         context: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
         stream: bool = False,
-    ) -> str:
+    ) -> Any:
         """
         Send a chat message to Ollama and get a response.
         
@@ -185,7 +186,7 @@ class OllamaClient:
             stream: Whether to stream the response.
             
         Returns:
-            The model's response as a string.
+            The model's response as a string, or a dict if tool calls are present.
         """
         start_time = time.time()
         
@@ -222,6 +223,9 @@ class OllamaClient:
                 "stream": stream,
             }
             
+            if tools:
+                payload["tools"] = tools
+            
             if stream:
                 return await self._chat_stream(client, payload)
             else:
@@ -229,7 +233,15 @@ class OllamaClient:
                 response.raise_for_status()
                 
                 data = response.json()
-                content = data.get("message", {}).get("content", "")
+                message = data.get("message", {})
+                
+                # Check for tool calls first
+                if message.get("tool_calls"):
+                    elapsed = time.time() - start_time
+                    logger.info(f"Chat returned tool calls in {elapsed:.2f}s")
+                    return message # Return full message object for tool handling
+                
+                content = message.get("content", "")
                 
                 elapsed = time.time() - start_time
                 logger.info(f"Chat completed in {elapsed:.2f}s, {len(content)} chars")
@@ -241,6 +253,53 @@ class OllamaClient:
             raise
         except Exception as e:
             logger.error(f"Chat request failed: {e}")
+            raise
+
+    async def chat_completion(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        stream: bool = False,
+    ) -> Any:
+        """
+        Send a full chat history to Ollama (for Agentic loops).
+        """
+        start_time = time.time()
+        try:
+            client = await self._ensure_client()
+            
+            payload = {
+                "model": self.config.chat_model,
+                "messages": messages,
+                "options": {
+                    "temperature": self.config.temperature,
+                    "num_predict": self.config.max_tokens,
+                },
+                "stream": stream,
+            }
+            
+            if tools:
+                payload["tools"] = tools
+
+            # For now, we don't support streaming with tools in this simple loop
+            response = await client.post("/api/chat", json=payload)
+            response.raise_for_status()
+            
+            data = response.json()
+            message = data.get("message", {})
+            
+            if message.get("tool_calls"):
+                elapsed = time.time() - start_time
+                logger.info(f"Agent decision: Tool Call in {elapsed:.2f}s")
+                return message
+            
+            content = message.get("content", "")
+            elapsed = time.time() - start_time
+            logger.info(f"Agent response in {elapsed:.2f}s")
+            return content
+
+        except Exception as e:
+            logger.error(f"Chat completion failed: {e}")
             raise
     
     async def _chat_stream(

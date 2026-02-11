@@ -294,7 +294,10 @@
                     <pre><code>python scripts/ingest_project.py /path/to/your/XcodeProject</code></pre>
                 </div>
                 <div class="alert alert-success">
-                    <strong>Tip:</strong> Use <code>--watch</code> flag to automatically re-ingest on file changes.
+                    <strong>⚡ Automatic Sync (Recommended):</strong><br>
+                    To keep the AI updated as you code, open a new terminal and run:<br>
+                    <code>./scripts/watch_project.sh /path/to/your/XcodeProject</code><br>
+                    It will watch for changes and update the database instantly.
                 </div>
             </div>
 
@@ -329,6 +332,11 @@ alias mcp-server='$MCP_SERVER_PATH/scripts/start_server.sh'</code></pre>
                     <pre><code>python -m server.http_server --port 1234</code></pre>
                 </div>
                 <div class="alert alert-success">
+                    <strong>🚀 Recommended:</strong> Use the unified start script to run both the Server and
+                    Auto-Sync:<br>
+                    <code>./scripts/start_with_watcher.sh /path/to/project</code>
+                </div>
+                <div class="alert alert-info">
                     <strong>Server runs at:</strong> <code>http://localhost:1234</code><br>
                     Provides OpenAI-compatible API that Xcode connects to directly.
                 </div>

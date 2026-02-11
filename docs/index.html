@@ -402,6 +402,11 @@
                     <h4>Fully Local</h4>
                     <p>Everything runs on your machine. No cloud dependencies, complete privacy.</p>
                 </div>
+                <div class="card">
+                    <div class="icon">⚡</div>
+                    <h4>Action Tools</h4>
+                    <p>Agentic capabilities: File writing, command execution, and autonomous exploration.</p>
+                </div>
             </div>
         </section>
 
@@ -479,7 +484,8 @@
 curl http://localhost:1234/v1/models
 curl http://localhost:1234/mcp/stats</code></pre>
                     <p>Or use MCP Inspector:
-                        <code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></p>
+                        <code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code>
+                    </p>
                 </li>
             </ol>
 
@@ -625,6 +631,22 @@ curl http://localhost:1234/mcp/stats</code></pre>
                         <td><code>clear_memory</code></td>
                         <td>Clear a memory collection</td>
                     </tr>
+                    <tr>
+                        <td><code>list_files</code></td>
+                        <td>List files in a directory (Agentic)</td>
+                    </tr>
+                    <tr>
+                        <td><code>read_file</code></td>
+                        <td>Read file content (Agentic)</td>
+                    </tr>
+                    <tr>
+                        <td><code>write_to_file</code></td>
+                        <td>Create or modify files (Agentic)</td>
+                    </tr>
+                    <tr>
+                        <td><code>run_command</code></td>
+                        <td>Run terminal commands (Agentic)</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
@@ -728,6 +750,7 @@ python scripts/memory_search.py --export backup.json</code></pre>
 │   ├── start_server.sh      <span class="code-comment"># Start MCP server (stdio)</span>
 │   ├── create_models.sh     <span class="code-comment"># Create custom models</span>
 │   ├── ingest_project.py    <span class="code-comment"># Ingest code files</span>
+│   ├── watch_project.sh     <span class="code-comment"># ⚡ Auto-sync project</span>
 │   └── memory_search.py     <span class="code-comment"># Search memory</span>
 │
 ├── docs/                    <span class="code-comment"># HTML documentation</span>

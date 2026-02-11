@@ -426,7 +426,10 @@ npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></p
 mcp-ingest
 
 # Or with full path
-python /path/to/xcode-mcp-server/scripts/ingest_project.py /path/to/MyApp</code></pre>
+python /path/to/xcode-mcp-server/scripts/ingest_project.py /path/to/MyApp
+
+# OR Use Auto-Sync (Recommended)
+./scripts/watch_project.sh /path/to/MyApp (Running in background)</code></pre>
 
             <h3>2. Start the Server</h3>
             <pre><code># Start the HTTP server for Xcode
@@ -457,12 +460,21 @@ python /path/to/xcode-mcp-server/scripts/ingest_project.py /path/to/MyApp</code>
                         <td>Ask questions</td>
                         <td>Ask about your codebase — RAG provides context automatically</td>
                     </tr>
+                    <tr>
+                        <td><strong>Agentic Actions</strong></td>
+                        <td><strong>"Create a file...", "Run tests..."</strong> — The server will execute tools
+                            autonomously.</td>
+                    </tr>
                 </tbody>
             </table>
 
             <h3>4. Keep Memory Updated</h3>
             <pre><code># Re-ingest after major changes
-mcp-ingest --clear</code></pre>
+# Re-ingest (Manual)
+mcp-ingest --clear
+
+# Automatic Sync (Recommended)
+./scripts/watch_project.sh /path/to/project</code></pre>
         </section>
 
         <section>

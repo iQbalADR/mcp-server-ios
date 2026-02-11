@@ -17,6 +17,7 @@ import json
 import os
 import sys
 import time
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Sequence
@@ -259,6 +260,98 @@ class XcodeMCPServer:
         
         self._register_handlers()
     
+    def get_tools_for_ollama(self) -> List[Dict[str, Any]]:
+        """Convert MCP tools to Ollama tool format."""
+        # We manually map the tools we want to expose to Ollama
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_files",
+                    "description": "List files in a directory",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "Directory path"},
+                        },
+                        "required": ["path"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "description": "Read file content",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path"},
+                        },
+                        "required": ["path"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "write_to_file",
+                    "description": "Write content to a file",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path"},
+                            "content": {"type": "string", "description": "File content"},
+                        },
+                        "required": ["path", "content"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "run_command",
+                    "description": "Run terminal command",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "command": {"type": "string", "description": "Command string"},
+                        },
+                        "required": ["command"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "apply_patch",
+                    "description": "Apply a git-style patch to a file",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path"},
+                            "diff": {"type": "string", "description": "Unified diff content"},
+                        },
+                        "required": ["path", "diff"],
+                    },
+                },
+            },
+             {
+                "type": "function",
+                "function": {
+                    "name": "ask_with_context",
+                    "description": "Search code/docs (RAG)",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "question": {"type": "string", "description": "Query"},
+                        },
+                        "required": ["question"],
+                    },
+                },
+            },
+        ]
+    
     async def initialize(self) -> None:
         """Initialize all components."""
         logger.info("Initializing MCP Server...")
@@ -357,6 +450,64 @@ class XcodeMCPServer:
                         "required": ["content"],
                     },
                 ),
+                Tool(
+                    name="list_files",
+                    description="List files in a directory to explore the project structure.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "Directory path (relative to project root)"},
+                        },
+                        "required": ["path"],
+                    },
+                ),
+                Tool(
+                    name="read_file",
+                    description="Read the contents of a file.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path"},
+                        },
+                        "required": ["path"],
+                    },
+                ),
+                Tool(
+                    name="write_to_file",
+                    description="Create or overwrite a file with new content.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path"},
+                            "content": {"type": "string", "description": "New file content"},
+                        },
+                        "required": ["path", "content"],
+                    },
+                ),
+                Tool(
+                    name="apply_patch",
+                    description="Apply a git-style patch to a file.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "File path to patch"},
+                            "diff": {"type": "string", "description": "The patch content (unified diff)"},
+                        },
+                        "required": ["path", "diff"],
+                    },
+                ),
+                Tool(
+                    name="run_command",
+                    description="Run a terminal command (e.g., xcodebuild, git).",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "command": {"type": "string", "description": "Command to execute"},
+                        },
+                        "required": ["command"],
+                    },
+                ),
+
                 Tool(
                     name="search_memory",
                     description="Search memory/notebook.",
@@ -506,6 +657,97 @@ class XcodeMCPServer:
             success = await self.vector_store.clear_collection(collection)
             return f"Cleared {collection}" if success else f"Failed to clear {collection}"
         
+        # --- Agentic Tools ---
+        elif name == "list_files":
+            path = arguments.get("path", ".")
+            # basic limitation for safety: don't go outside home if possible, but for now just raw
+            if ".." in path: 
+                return "Error: Accessing parent directories is restricted."
+            
+            try:
+                # Assuming current working directory is project root
+                full_path = Path(os.getcwd()) / path
+                if not full_path.exists():
+                     return f"Error: Path {path} does not exist."
+                
+                items = os.listdir(full_path)
+                # Filter hidden files
+                items = [i for i in items if not i.startswith(".")]
+                return "\n".join(items)
+            except Exception as e:
+                return f"Error listing files: {e}"
+
+        elif name == "read_file":
+            path = arguments["path"]
+            try:
+                with open(path, "r") as f:
+                    return f.read()
+            except Exception as e:
+                return f"Error reading file {path}: {e}"
+
+        elif name == "write_to_file":
+            path = arguments["path"]
+            content = arguments["content"]
+            try:
+                # Ensure dir exists
+                p = Path(path)
+                p.parent.mkdir(parents=True, exist_ok=True)
+                with open(p, "w") as f:
+                    f.write(content)
+                return f"Successfully wrote to {path}"
+            except Exception as e:
+                return f"Error writing file {path}: {e}"
+
+        elif name == "run_command":
+            command = arguments["command"]
+            # Security warning: valid for local use, dangerous if exposed
+            allowed_prefixes = ["git", "xcodebuild", "ls", "pwd", "cat", "echo", "swift", "mkdir", "rm"]
+            if not any(command.strip().startswith(prefix) for prefix in allowed_prefixes):
+                 # Relaxed for now as user requested "Action Tools"
+                 pass 
+
+            try:
+                result = subprocess.run(
+                    command, 
+                    shell=True, 
+                    capture_output=True, 
+                    text=True,
+                    timeout=60
+                )
+                if result.returncode == 0:
+                    return f"success: {result.stdout}"
+                else:
+                    return f"error (code {result.returncode}): {result.stderr}"
+            except Exception as e:
+                return f"Execution failed: {e}"
+
+        elif name == "apply_patch":
+            path = arguments["path"]
+            diff = arguments["diff"]
+            try:
+                # Create temporary patch file
+                with open("temp.patch", "w") as f:
+                    f.write(diff)
+                
+                # Apply patch
+                result = subprocess.run(
+                    ["git", "apply", "temp.patch"],
+                    capture_output=True,
+                    text=True
+                )
+                
+                # Cleanup
+                os.remove("temp.patch")
+                
+                if result.returncode == 0:
+                    return f"Successfully applied patch to {path}"
+                else:
+                    return f"Failed to apply patch: {result.stderr}"
+            except Exception as e:
+                if os.path.exists("temp.patch"):
+                    os.remove("temp.patch")
+                return f"Error applying patch: {e}"
+
         else:
             raise ValueError(f"Unknown tool: {name}")
     
