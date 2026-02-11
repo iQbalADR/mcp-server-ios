@@ -333,14 +333,6 @@ class OllamaClient:
     ) -> AsyncGenerator[str, None]:
         """
         Stream chat response token by token.
-        
-        Args:
-            prompt: The user's message/question.
-            system_prompt: Optional system prompt.
-            context: Optional RAG context.
-            
-        Yields:
-            Response tokens as they are generated.
         """
         messages = []
         
@@ -349,12 +341,22 @@ class OllamaClient:
         
         if context:
             messages.append({
-                "role": "system",
+                "role": "system", 
                 "content": f"Context:\n{context}"
             })
         
         messages.append({"role": "user", "content": prompt})
         
+        async for chunk in self.stream_chat_with_history(messages):
+            yield chunk
+
+    async def stream_chat_with_history(
+        self,
+        messages: List[Dict[str, Any]],
+    ) -> AsyncGenerator[str, None]:
+        """
+        Stream chat response using full message history.
+        """
         client = await self._ensure_client()
         
         payload = {

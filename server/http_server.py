@@ -161,6 +161,8 @@ class XcodeHTTPServer:
              # Fallback if no user message found in history
              return web.json_response({"error": "No user message found"}, status=400)
         
+        logger.info(f"🗣️ User Query: {last_user_message[:200]}..." if len(last_user_message) > 200 else f"🗣️ User Query: {last_user_message}")
+
         # Prepare messages list for Agent loop
         agent_messages = []
         
@@ -231,16 +233,14 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
             
             # Max turns
             for turn in range(5):
-                logger.info(f"Agent Turn {turn+1}")
-                logger.debug(f"Sending to Agent - Messages: {len(agent_messages)}, Tools: {len(tools) if tools else 0}")
+                logger.info(f"🔄 Agent Turn {turn+1}")
+                logger.debug(f"🧠 Sending to Agent - Messages: {len(agent_messages)}, Tools: {len(tools) if tools else 0}")
                 
                 response_payload = await self.mcp_server.ollama.chat_completion(
                     messages=agent_messages,
                     tools=tools,
                     stream=False # Tools require full response to parse
                 )
-                
-                logger.debug(f"Agent raw response: {response_payload}")
                 
                 # Check if it's a tool call
                 if isinstance(response_payload, dict) and response_payload.get("tool_calls"):
@@ -253,7 +253,17 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
                     for tool in tool_calls:
                         fn_name = tool["function"]["name"]
                         args = tool["function"]["arguments"]
-                        logger.info(f"🛠️ Agent executing: {fn_name}({args})")
+                        logger.info(f"🛠️ Agent executing: {fn_name}")
+                        
+                        # Create printable args summary
+                        try:
+                            args_summary = json.dumps(args)
+                            if len(args_summary) > 1000:
+                                args_summary = args_summary[:1000] + "... [truncated]"
+                        except:
+                            args_summary = str(args)
+                            
+                        logger.info(f"   Args: {args_summary}")
                         
                         try:
                             # Parse args if string (Ollama sometimes returns string json)
@@ -262,14 +272,17 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
                             
                             result = await self.mcp_server._execute_tool(fn_name, args)
                         except Exception as e:
+                            logger.error(f"❌ Tool Execution Error: {e}")
                             result = f"Error executing tool: {e}"
                         
-                        logger.info(f"   -> Result: {str(result)[:100]}...")
+                        result_str = str(result)
+                        preview_len = 500
+                        logger.info(f"   -> Result: {result_str[:preview_len]}..." if len(result_str) > preview_len else f"   -> Result: {result_str}")
                         
                         # Add output to history
                         agent_messages.append({
                             "role": "tool",
-                            "content": str(result),
+                            "content": result_str,
                             "name": fn_name
                         })
                     
@@ -277,7 +290,9 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
                     continue
                 
                 elif isinstance(response_payload, str):
-                    # Final text response OR hidden tool call
+                    logger.info("📝 Agent responded with text:")
+                    logger.info(f"   Reasoning: {response_payload}")
+                    
                     # Check if model outputted a JSON block for tool usage
                     # Matches ```json or ```swift or just ```
                     tool_match = re.search(r"```(?:\w+)?\s*(\{.*?\})\s*```", response_payload, re.DOTALL)
@@ -288,14 +303,18 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
                                 # It's a valid tool call!
                                 fn_name = tool_json["name"]
                                 args = tool_json["arguments"]
-                                logger.info(f"🛠️ Agent executing (via heuristic): {fn_name}({args})")
+                                logger.info(f"🛠️ Agent executing (via heuristic): {fn_name}")
+                                logger.debug(f"   Args: {args}")
                                 
                                 try:
                                     result = await self.mcp_server._execute_tool(fn_name, args)
                                 except Exception as e:
+                                    logger.error(f"❌ Tool Execution Error (Heuristic): {e}")
                                     result = f"Error executing tool: {e}"
                                 
-                                logger.info(f"   -> Result: {str(result)[:100]}...")
+                                result_str = str(result)
+                                preview_len = 500
+                                logger.info(f"   -> Result: {result_str[:preview_len]}..." if len(result_str) > preview_len else f"   -> Result: {result_str}")
                                 
                                 agent_messages.append({
                                     "role": "user",

@@ -603,11 +603,16 @@ class XcodeMCPServer:
     
     async def _execute_tool(self, name: str, arguments: dict) -> str:
         """Execute a tool."""
+        logger.debug(f"Executing tool '{name}' with args: {arguments}")
+        
         if name == "generate_code":
             description = arguments["description"]
             language = arguments.get("language", "swift")
             
             context_docs = await self.rag.search_memory(description, "code", limit=5)
+            if context_docs:
+                logger.info(f"Found {len(context_docs)} context documents for code generation")
+            
             context = "\n\n".join([f"```\n{d.content}\n```" for d in context_docs]) if context_docs else None
             
             return await self.ollama.generate_code(description, language, context)
@@ -707,6 +712,7 @@ class XcodeMCPServer:
                  pass 
 
             try:
+                logger.info(f"Running command: {command}")
                 result = subprocess.run(
                     command, 
                     shell=True, 
@@ -715,10 +721,13 @@ class XcodeMCPServer:
                     timeout=60
                 )
                 if result.returncode == 0:
+                    logger.debug(f"Command success. Output len: {len(result.stdout)}")
                     return f"success: {result.stdout}"
                 else:
+                    logger.warning(f"Command failed (code {result.returncode}). Stderr: {result.stderr}")
                     return f"error (code {result.returncode}): {result.stderr}"
             except Exception as e:
+                logger.error(f"Command execution exception: {e}")
                 return f"Execution failed: {e}"
 
         elif name == "apply_patch":

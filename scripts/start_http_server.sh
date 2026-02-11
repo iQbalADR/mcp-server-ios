@@ -18,11 +18,26 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Port (default 1234)
-PORT="${1:-1234}"
+# Defaults
+PORT=1234
+WATCH_DIR=""
 
-# Watch Directory (optional)
-WATCH_DIR="$2"
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --port) PORT="$2"; shift ;;
+        --watch) WATCH_DIR="$2"; shift ;;
+        *) 
+          # Fallback for positional args (legacy support)
+          if [[ -z "$WATCH_DIR" && "$1" =~ ^[0-9]+$ ]]; then
+            PORT="$1"
+          elif [[ -d "$1" ]]; then
+            WATCH_DIR="$1"
+          fi
+          ;;
+    esac
+    shift
+done
 
 cd "$PROJECT_DIR"
 
