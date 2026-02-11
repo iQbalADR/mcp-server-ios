@@ -469,14 +469,17 @@
                     <p>Adds your codebase to the vector database for context.</p>
                 </li>
                 <li>
-                    <h4>Start the Server</h4>
-                    <pre><code>./scripts/start_server.sh</code></pre>
-                    <p>Starts the MCP server with debugging enabled.</p>
+                    <h4>Start the HTTP Server</h4>
+                    <pre><code>./scripts/start_http_server.sh</code></pre>
+                    <p>Starts the OpenAI-compatible HTTP server on port 1234 for Xcode.</p>
                 </li>
                 <li>
-                    <h4>Test the Server</h4>
-                    <pre><code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></pre>
-                    <p>Or run directly: <code>./venv/bin/python -m server.mcp_server</code></p>
+                    <h4>Verify It's Working</h4>
+                    <pre><code>curl http://localhost:1234/health
+curl http://localhost:1234/v1/models
+curl http://localhost:1234/mcp/stats</code></pre>
+                    <p>Or use MCP Inspector:
+                        <code>npx @anthropic-ai/mcp-inspector ./venv/bin/python -m server.mcp_server</code></p>
                 </li>
             </ol>
 
@@ -721,7 +724,8 @@ python scripts/memory_search.py --export backup.json</code></pre>
 │
 ├── scripts/                 <span class="code-comment"># Helper scripts</span>
 │   ├── setup.sh             <span class="code-comment"># Initial setup</span>
-│   ├── start_server.sh      <span class="code-comment"># Start server</span>
+│   ├── start_http_server.sh <span class="code-comment"># Start HTTP server for Xcode</span>
+│   ├── start_server.sh      <span class="code-comment"># Start MCP server (stdio)</span>
 │   ├── create_models.sh     <span class="code-comment"># Create custom models</span>
 │   ├── ingest_project.py    <span class="code-comment"># Ingest code files</span>
 │   └── memory_search.py     <span class="code-comment"># Search memory</span>

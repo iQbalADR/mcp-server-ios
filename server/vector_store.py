@@ -49,19 +49,18 @@ class ReRanker:
         """Fix SSL certificate issues on macOS."""
         import os
         import ssl
+        # Always patch SSL context first (must happen before any HTTP library imports)
+        try:
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except AttributeError:
+            pass
+        # Also set env vars for requests/urllib3/huggingface_hub
         try:
             import certifi
-            os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
-            os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+            os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+            os.environ["SSL_CERT_FILE"] = certifi.where()
         except ImportError:
-            pass
-        # Fallback: disable SSL verification if certs still fail
-        if not os.environ.get("REQUESTS_CA_BUNDLE"):
             os.environ["CURL_CA_BUNDLE"] = ""
-            try:
-                ssl._create_default_https_context = ssl._create_unverified_context
-            except AttributeError:
-                pass
     
     def _load_model(self):
         """Lazy-load the cross-encoder model."""
