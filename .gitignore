@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Vector DB
+data/chromadb/
+data/lancedb/
+
+# OS
+.DS_Store
