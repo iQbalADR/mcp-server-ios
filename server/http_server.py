@@ -44,6 +44,7 @@ class XcodeHTTPServer:
     def __init__(self, mcp_server: XcodeMCPServer, port: int = 1234):
         self.mcp_server = mcp_server
         self.port = port
+        self.default_system_prompt = mcp_server.config.get("system_prompt", "")
         self.app = web.Application()
         self._setup_routes()
     
@@ -114,6 +115,8 @@ class XcodeHTTPServer:
         """Handle chat completions (OpenAI-compatible)."""
         try:
             data = await request.json()
+            logger.info(f"📨 Chat Request: stream={data.get('stream')}, model={data.get('model')}")
+            # logger.debug(f"Payload: {json.dumps(data, indent=2)}")
         except json.JSONDecodeError:
             return web.json_response({"error": "Invalid JSON"}, status=400)
         
@@ -166,34 +169,16 @@ class XcodeHTTPServer:
         # Prepare messages list for Agent loop
         agent_messages = []
         
-        # 1. System Prompt
+        # 1. System Prompt — merge default (from config.yaml) + any Xcode-provided system message
+        combined_system = self.default_system_prompt
         if system_message_content:
-            agent_messages.append({"role": "system", "content": system_message_content})
+            combined_system = combined_system + "\n\n" + system_message_content if combined_system else system_message_content
         
-        # Add RAG context if available
-        if self.mcp_server.vector_store:
-            try:
-                # Basic RAG: Search based on user message
-                # Ideally, we should let the model DECIDE to search (via ask_with_context tool),
-                # but for backward compatibility/speed, we can pre-inject context.
-                # However, the user wants "Agentic Search", so maybe we DISABLE auto-RAG 
-                # and let it use the tool?
-                # User's guide says: "If using list_files/read_file, AI will check itself."
-                # But RAG is still useful for semantic search.
-                # Let's keep auto-RAG for now, but maybe less aggressive?
-                code_results = await self.mcp_server.vector_store.search_code(last_user_message, n_results=3)
-                if code_results:
-                    context_parts = []
-                    for result in code_results:
-                        file_path = result.metadata.get("file_path", "unknown")
-                        context_parts.append(f"# From {file_path}\n{result.content}")
-                    context_str = "\n\n".join(context_parts)
-                    agent_messages.append({
-                        "role": "system", 
-                        "content": f"Relevant Code Context:\n\n{context_str}"
-                    })
-            except Exception as e:
-                logger.warning(f"RAG search failed: {e}")
+        if combined_system:
+            agent_messages.append({"role": "system", "content": combined_system})
+        
+        # RAG context will be added inside the agent loop now
+
         
         # 3. Append valid conversation history
         agent_messages.extend(current_messages)
@@ -201,183 +186,191 @@ class XcodeHTTPServer:
         # Get tools
         tools = self.mcp_server.get_tools_for_ollama()
 
-        # Enforce Tool Usage System Prompt
-        # This overrides any "chatty" behavior from the model
-        agent_messages.append({
-            "role": "user", 
-            "content": """IMPORTANT INSTRUCTION:
-You are an Agent with filesystem access.
-If the user asks to create, write, or refactor files:
-1. DO NOT output code snippets in markdown.
-2. To CREATE a file, use `write_to_file`.
-3. To EDIT a file, you MUST FIRST use `read_file` to get the content, then use `write_to_file` to overwrite it with the unified changes.
-4. ACT immediately. Do not explain what you are going to do.
-
-Example of what you must do:
-User: "Add print to main.swift"
-Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `write_to_file` with new content)
-"""
-        })
-
         # --- Agent Loop ---
-        final_response_content = ""
-        
         try:
-            # We assume non-streaming for Tool use (simpler for now)
-            # If stream=True, we might fallback to simple chat if no tools used?
-            # Or enforce non-streaming for Agent logic.
-            # Xcode streams by default. We must handle this.
-            # If we are an Agent, we "think" (pause stream), execute, then stream final answer?
-            # Xcode might timeout if we wait too long.
-            # For this MVP, we will NOT stream the "thinking" process, but stream the FINAL result.
-            
-            # Max turns
-            for turn in range(5):
-                logger.info(f"🔄 Agent Turn {turn+1}")
-                logger.debug(f"🧠 Sending to Agent - Messages: {len(agent_messages)}, Tools: {len(tools) if tools else 0}")
-                
-                response_payload = await self.mcp_server.ollama.chat_completion(
-                    messages=agent_messages,
-                    tools=tools,
-                    stream=False # Tools require full response to parse
-                )
-                
-                # Check if it's a tool call
-                if isinstance(response_payload, dict) and response_payload.get("tool_calls"):
-                    tool_calls = response_payload["tool_calls"]
-                    
-                    # Add assistant's "intent" to history
-                    agent_messages.append(response_payload)
-                    
-                    # Execute tools
-                    for tool in tool_calls:
-                        fn_name = tool["function"]["name"]
-                        args = tool["function"]["arguments"]
-                        logger.info(f"🛠️ Agent executing: {fn_name}")
-                        
-                        # Create printable args summary
-                        try:
-                            args_summary = json.dumps(args)
-                            if len(args_summary) > 1000:
-                                args_summary = args_summary[:1000] + "... [truncated]"
-                        except:
-                            args_summary = str(args)
-                            
-                        logger.info(f"   Args: {args_summary}")
-                        
-                        try:
-                            # Parse args if string (Ollama sometimes returns string json)
-                            if isinstance(args, str):
-                                args = json.loads(args)
-                            
-                            result = await self.mcp_server._execute_tool(fn_name, args)
-                        except Exception as e:
-                            logger.error(f"❌ Tool Execution Error: {e}")
-                            result = f"Error executing tool: {e}"
-                        
-                        result_str = str(result)
-                        preview_len = 500
-                        logger.info(f"   -> Result: {result_str[:preview_len]}..." if len(result_str) > preview_len else f"   -> Result: {result_str}")
-                        
-                        # Add output to history
-                        agent_messages.append({
-                            "role": "tool",
-                            "content": result_str,
-                            "name": fn_name
-                        })
-                    
-                    # Loop continues to next turn to let AI react to tool output
-                    continue
-                
-                elif isinstance(response_payload, str):
-                    logger.info("📝 Agent responded with text:")
-                    logger.info(f"   Reasoning: {response_payload}")
-                    
-                    # Check if model outputted a JSON block for tool usage
-                    # Matches ```json or ```swift or just ```
-                    tool_match = re.search(r"```(?:\w+)?\s*(\{.*?\})\s*```", response_payload, re.DOTALL)
-                    if tool_match:
-                        try:
-                            tool_json = json.loads(tool_match.group(1))
-                            if "name" in tool_json and "arguments" in tool_json:
-                                # It's a valid tool call!
-                                fn_name = tool_json["name"]
-                                args = tool_json["arguments"]
-                                logger.info(f"🛠️ Agent executing (via heuristic): {fn_name}")
-                                logger.debug(f"   Args: {args}")
-                                
-                                try:
-                                    result = await self.mcp_server._execute_tool(fn_name, args)
-                                except Exception as e:
-                                    logger.error(f"❌ Tool Execution Error (Heuristic): {e}")
-                                    result = f"Error executing tool: {e}"
-                                
-                                result_str = str(result)
-                                preview_len = 500
-                                logger.info(f"   -> Result: {result_str[:preview_len]}..." if len(result_str) > preview_len else f"   -> Result: {result_str}")
-                                
-                                agent_messages.append({
-                                    "role": "user",
-                                    "content": f"Tool Output: {result}"
-                                })
-                                continue
-                        except json.JSONDecodeError as e:
-                            logger.warning(f"Heuristic JSON parse failed: {e}")
-                            # Feed error back to Agent to let it retry
-                            agent_messages.append({
-                                "role": "assistant",
-                                "content": response_payload
-                            })
-                            agent_messages.append({
-                                "role": "user",
-                                "content": f"SYSTEM ERROR: Your last response contained invalid JSON in the code block. Please fix the quoting and escaping. Error: {e}"
-                            })
-                            continue
-
-                    # Final text response
-                    final_response_content = response_payload
-                    break
-                
-                else:
-                    # Unexpected text content in dict dict?
-                    if isinstance(response_payload, dict):
-                         final_response_content = response_payload.get("content", "")
-                    break
-
-            # Send final response to Xcode
-            response_obj = {
-                "id": f"chatcmpl-{int(time.time())}",
-                "object": "chat.completion",
-                "created": int(time.time()),
-                "model": model,
-                "choices": [
-                    {
-                        "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": final_response_content or "Agent completed tasks but returned no text."
-                        },
-                        "finish_reason": "stop"
-                    }
-                ],
-                "usage": {
-                    "prompt_tokens": len(str(agent_messages)),
-                    "completion_tokens": len(final_response_content),
-                    "total_tokens": len(str(agent_messages)) + len(final_response_content)
-                }
-            }
-            
-            # If the original request wanted streaming, we should ideally stream the final text.
-            # But converting string -> stream response is complex here. 
-            # Xcode handles non-streaming fine usually, or we can fake a stream.
             if stream:
-                return await self._handle_streaming_text(request, final_response_content, model)
-            
-            return web.json_response(response_obj)
+                return await self._handle_streaming_agent(request, agent_messages, tools, model, last_user_message)
+            else:
+                # Non-streaming: collect all chunks and return as one message
+                full_response = ""
+                async for chunk in self._run_agent_loop(agent_messages, tools, last_user_message):
+                    full_response += chunk
+                
+                return web.json_response({
+                    "id": f"chatcmpl-{int(time.time())}",
+                    "object": "chat.completion",
+                    "created": int(time.time()),
+                    "model": model,
+                    "choices": [{
+                        "index": 0,
+                        "message": {"role": "assistant", "content": full_response},
+                        "finish_reason": "stop"
+                    }],
+                    "usage": {"total_tokens": len(full_response)}
+                })
 
         except Exception as e:
             logger.error(f"Agent Loop error: {e}")
             return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_streaming_agent(self, request, agent_messages, tools, model, user_query) -> web.StreamResponse:
+        """Stream the agent loop outputs as they happen."""
+        response = web.StreamResponse(
+            status=200,
+            reason="OK",
+            headers={
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            }
+        )
+        await response.prepare(request)
+        
+        chunk_id = f"chatcmpl-{int(time.time())}"
+        
+        async for text_chunk in self._run_agent_loop(agent_messages, tools, user_query):
+            if not text_chunk:
+                continue
+                
+            data = {
+                "id": chunk_id,
+                "object": "chat.completion.chunk",
+                "created": int(time.time()),
+                "model": model,
+                "choices": [{"index": 0, "delta": {"content": text_chunk}, "finish_reason": None}]
+            }
+            await response.write(f"data: {json.dumps(data)}\n\n".encode())
+            # Yield control to event loop to ensure flush
+            await asyncio.sleep(0.01)
+            
+        # Send Done
+        done_data = {
+            "id": chunk_id,
+            "object": "chat.completion.chunk",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
+        }
+        await response.write(f"data: {json.dumps(done_data)}\n\n".encode())
+        await response.write(b"data: [DONE]\n\n")
+        return response
+
+    async def _run_agent_loop(self, agent_messages: List[Dict], tools: List[Dict], user_query: str):
+        """
+        Async generator that runs the Agent Loop and yields text chunks (logs + final answer).
+        """
+        
+        # Immediate indicator — first byte to client
+        yield "> ⏳ *Processing your request...*\n\n"
+        
+        # 1. RAG Search (Streaming status)
+        if self.mcp_server.vector_store:
+            yield "> _🔍 Searching codebase for context..._\n\n"
+            try:
+                code_results = await self.mcp_server.vector_store.search_code(user_query, n_results=3)
+                if code_results:
+                    context_parts = []
+                    for result in code_results:
+                        file_path = result.metadata.get("file_path", "unknown")
+                        context_parts.append(f"# From {file_path}\n{result.content}")
+                    context_str = "\n\n".join(context_parts)
+                    agent_messages.insert(1, { # Insert after system prompt (index 0)
+                        "role": "system", 
+                        "content": f"Relevant Code Context:\n\n{context_str}"
+                    })
+                    yield f"> _✅ Found {len(code_results)} relevant code snippets._\n\n"
+                else:
+                    yield "> _ℹ️ No relevant context found._\n\n"
+            except Exception as e:
+                logger.warning(f"RAG search failed: {e}")
+                yield f"> _⚠️ Context search failed: {e}_\n\n"
+
+        # Initial thought
+        yield "> _🧠 Thinking..._\n\n"
+
+        
+        for turn in range(5):
+            logger.info(f"🔄 Agent Turn {turn+1}")
+            
+            # Call Model
+            response_payload = await self.mcp_server.ollama.chat_completion(
+                messages=agent_messages,
+                tools=tools,
+                stream=False
+            )
+            
+            # 1. Tool Call
+            if isinstance(response_payload, dict) and response_payload.get("tool_calls"):
+                tool_calls = response_payload["tool_calls"]
+                agent_messages.append(response_payload)
+                
+                for tool in tool_calls:
+                    fn_name = tool["function"]["name"]
+                    args = tool["function"]["arguments"]
+                    
+                    # Log tool usage to stream
+                    yield f"> 🛠️ **Executing:** `{fn_name}`\n"
+                    
+                    try:
+                        if isinstance(args, str):
+                            args = json.loads(args)
+                        result = await self.mcp_server._execute_tool(fn_name, args)
+                    except Exception as e:
+                        result = f"Error: {e}"
+                        
+                    # Log result (truncated)
+                    result_str = str(result)
+                    preview = result_str[:100].replace("\n", " ") + ("..." if len(result_str)>100 else "")
+                    yield f"> ✅ **Result:** `{preview}`\n\n"
+                    
+                    # Add to history
+                    agent_messages.append({
+                        "role": "tool",
+                        "content": result_str,
+                        "name": fn_name
+                    })
+                
+                # Yield thinking again for next turn
+                yield "> _🧠 Thinking..._\n\n"
+                continue
+            
+            # 2. Text Response (or Heuristic Tool)
+            elif isinstance(response_payload, str):
+                # Heuristic check for tools code blocks
+                tool_match = re.search(r"```(?:\w+)?\s*(\{.*?\})\s*```", response_payload, re.DOTALL)
+                if tool_match:
+                    try:
+                        tool_json = json.loads(tool_match.group(1))
+                        if "name" in tool_json and "arguments" in tool_json:
+                            fn_name = tool_json["name"]
+                            args = tool_json["arguments"]
+                            
+                            yield f"> 🛠️ **Executing:** `{fn_name}`\n"
+                            result = await self.mcp_server._execute_tool(fn_name, args)
+                            
+                            result_str = str(result)
+                            preview = result_str[:100].replace("\n", " ")
+                            yield f"> ✅ **Result:** `{preview}`\n\n"
+                            
+                            agent_messages.append({"role": "user", "content": f"Tool Output: {result}"})
+                            yield "> _🧠 Thinking..._\n\n"
+                            continue
+                    except:
+                        pass # Fall through to text
+                
+                # Is it a Chain of Thought? (DeepSeek style <think>)
+                # If so, we might want to collapse it or format it?
+                # For now, just yield the text.
+                
+                yield response_payload
+                return
+            
+            else:
+                 # Wtf case
+                 content = response_payload.get("content", "") if isinstance(response_payload, dict) else str(response_payload)
+                 yield content
+                 return
+
     
     async def _handle_streaming_text(self, request, text: str, model: str) -> web.StreamResponse:
         """Stream a static text/string as if it were being generated."""
@@ -414,64 +407,7 @@ Assistant: (Calls tool `read_file` {"path": "main.swift"}) ... (Then calls `writ
         await response.write(b"data: [DONE]\n\n")
         return response
     
-    async def _handle_streaming_chat(
-        self,
-        request: web.Request,
-        user_message: str,
-        system_message: Optional[str],
-        context: Optional[str],
-        model: str
-    ) -> web.StreamResponse:
-        """Handle streaming chat response."""
-        response = web.StreamResponse(
-            status=200,
-            reason="OK",
-            headers={"Content-Type": "text/event-stream"}
-        )
-        await response.prepare(request)
-        
-        # For now, just return non-streaming wrapped as SSE
-        full_response = await self.mcp_server.ollama.chat(
-            prompt=user_message,
-            system_prompt=system_message,
-            context=context,
-        )
-        
-        # Send as single chunk
-        chunk_data = {
-            "id": f"chatcmpl-{id(full_response)}",
-            "object": "chat.completion.chunk",
-            "created": int(asyncio.get_event_loop().time()),
-            "model": model,
-            "choices": [
-                {
-                    "index": 0,
-                    "delta": {"content": full_response},
-                    "finish_reason": None
-                }
-            ]
-        }
-        
-        await response.write(f"data: {json.dumps(chunk_data)}\n\n".encode())
-        
-        # Send done
-        done_data = {
-            "id": f"chatcmpl-{id(full_response)}",
-            "object": "chat.completion.chunk",
-            "created": int(asyncio.get_event_loop().time()),
-            "model": model,
-            "choices": [
-                {
-                    "index": 0,
-                    "delta": {},
-                    "finish_reason": "stop"
-                }
-            ]
-        }
-        await response.write(f"data: {json.dumps(done_data)}\n\n".encode())
-        await response.write(b"data: [DONE]\n\n")
-        
-        return response
+
     
     async def _handle_completions(self, request: web.Request) -> web.Response:
         """Handle text completions (OpenAI-compatible)."""

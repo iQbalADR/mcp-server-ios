@@ -2,10 +2,43 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Debug & Test scripts
+debug_*.py
+test_*.py
+
+# Virtual Environment
+venv/
+.venv/
+
+# Debug & Logs
+logs/
+*.log
+data/past_fixes_db.json
 
 # Vector DB
 data/chromadb/
 data/lancedb/
 
-# OS
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
 .DS_Store
+.AppleDouble
+
+# Xcode
+DerivedData/
+*.xcuserstate
+
+# Temporary
+temp.patch
+*.tmp

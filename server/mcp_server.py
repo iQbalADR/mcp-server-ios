@@ -39,6 +39,9 @@ from mcp.types import (
 from server.ollama_client import OllamaClient, OllamaConfig
 from server.vector_store import VectorStore, create_vector_store_with_ollama, SearchResult
 
+DB_PATH = "./data/past_fixes_db.json"
+
+
 
 # ============================================================================
 # Configuration
@@ -316,8 +319,24 @@ class XcodeMCPServer:
                         "type": "object",
                         "properties": {
                             "command": {"type": "string", "description": "Command string"},
+                            "cwd": {"type": "string", "description": "Working directory (optional)"},
                         },
                         "required": ["command"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "xcode_build",
+                    "description": "Build, clean, or test an Xcode project. Auto-detects workspace.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "action": {"type": "string", "description": "build, clean, or test"},
+                            "scheme": {"type": "string", "description": "Xcode scheme"},
+                            "destination": {"type": "string", "description": "Build destination"},
+                        },
                     },
                 },
             },
@@ -336,7 +355,7 @@ class XcodeMCPServer:
                     },
                 },
             },
-             {
+            {
                 "type": "function",
                 "function": {
                     "name": "ask_with_context",
@@ -350,6 +369,38 @@ class XcodeMCPServer:
                     },
                 },
             },
+            {
+                "type": "function",
+                "function": {
+                    "name": "ingest_error_fix",
+                    "description": "Log an error and its solution to the knowledge base.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "error_message": {"type": "string", "description": "The exact error message"},
+                            "broken_code": {"type": "string", "description": "The code that caused the error"},
+                            "fixed_code": {"type": "string", "description": "The corrected code"},
+                            "explanation": {"type": "string", "description": "Why the fix works"},
+                        },
+                        "required": ["error_message", "broken_code", "fixed_code", "explanation"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_past_fixes",
+                    "description": "Search for past solutions to similar errors.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "error_query": {"type": "string", "description": "Description of the error to search for"},
+                        },
+                        "required": ["error_query"],
+                    },
+                },
+            },
+
         ]
     
     async def initialize(self) -> None:
@@ -537,6 +588,19 @@ class XcodeMCPServer:
                         "required": ["collection"],
                     },
                 ),
+                Tool(
+                    name="xcode_build",
+                    description="Build, clean, or test an Xcode project. Auto-detects workspace/project.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "action": {"type": "string", "enum": ["build", "clean", "test"], "default": "build", "description": "Build action"},
+                            "scheme": {"type": "string", "description": "Xcode scheme (auto-detected if omitted)"},
+                            "destination": {"type": "string", "description": "Build destination (default: iOS Simulator)"},
+                            "workspace": {"type": "string", "description": "Path to .xcworkspace (auto-detected if omitted)"},
+                        },
+                    },
+                ),
             ]
         
         @self.server.call_tool()
@@ -705,27 +769,36 @@ class XcodeMCPServer:
 
         elif name == "run_command":
             command = arguments["command"]
-            # Security warning: valid for local use, dangerous if exposed
-            allowed_prefixes = ["git", "xcodebuild", "ls", "pwd", "cat", "echo", "swift", "mkdir", "rm"]
-            if not any(command.strip().startswith(prefix) for prefix in allowed_prefixes):
-                 # Relaxed for now as user requested "Action Tools"
-                 pass 
+            cwd = arguments.get("cwd", None)
 
             try:
-                logger.info(f"Running command: {command}")
+                logger.info(f"Running command: {command}" + (f" (cwd: {cwd})" if cwd else ""))
                 result = subprocess.run(
                     command, 
                     shell=True, 
                     capture_output=True, 
                     text=True,
-                    timeout=60
+                    timeout=120,
+                    cwd=cwd,
                 )
+                # Truncate output to last 100 lines to avoid context overflow
+                stdout_lines = result.stdout.splitlines()
+                if len(stdout_lines) > 100:
+                    stdout_truncated = f"[...truncated {len(stdout_lines) - 100} lines...]\n" + "\n".join(stdout_lines[-100:])
+                else:
+                    stdout_truncated = result.stdout
+                    
                 if result.returncode == 0:
                     logger.debug(f"Command success. Output len: {len(result.stdout)}")
-                    return f"success: {result.stdout}"
+                    return f"success: {stdout_truncated}"
                 else:
-                    logger.warning(f"Command failed (code {result.returncode}). Stderr: {result.stderr}")
-                    return f"error (code {result.returncode}): {result.stderr}"
+                    stderr_lines = result.stderr.splitlines()
+                    if len(stderr_lines) > 100:
+                        stderr_truncated = f"[...truncated {len(stderr_lines) - 100} lines...]\n" + "\n".join(stderr_lines[-100:])
+                    else:
+                        stderr_truncated = result.stderr
+                    logger.warning(f"Command failed (code {result.returncode}). Stderr: {result.stderr[:200]}")
+                    return f"error (code {result.returncode}): {stderr_truncated}"
             except Exception as e:
                 logger.error(f"Command execution exception: {e}")
                 return f"Execution failed: {e}"
@@ -756,6 +829,188 @@ class XcodeMCPServer:
                 if os.path.exists("temp.patch"):
                     os.remove("temp.patch")
                 return f"Error applying patch: {e}"
+
+        elif name == "ingest_error_fix":
+            error_message = arguments["error_message"]
+            broken_code = arguments["broken_code"]
+            fixed_code = arguments["fixed_code"]
+            explanation = arguments["explanation"]
+
+            # 1. Save to JSON (Backup)
+            try:
+                if os.path.exists(DB_PATH):
+                    with open(DB_PATH, "r") as f:
+                        db = json.load(f)
+                else:
+                    db = []
+                
+                new_record = {
+                    "error_message": error_message,
+                    "broken_code": broken_code,
+                    "fixed_code": fixed_code,
+                    "explanation": explanation,
+                    "timestamp": datetime.now().isoformat()
+                }
+                db.append(new_record)
+                
+                # Ensure directory exists
+                Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+                
+                with open(DB_PATH, "w") as f:
+                    json.dump(db, f, indent=4)
+            except Exception as e:
+                logger.error(f"Failed to save to JSON DB: {e}")
+                # Don't fail the whole operation if JSON backup fails, but log it.
+
+            # 2. Save to Vector Store (Primary)
+            try:
+                content = f"""
+# Error Fix
+## Error Message
+{error_message}
+
+## Explanation
+{explanation}
+
+## Broken Code
+```swift
+{broken_code}
+```
+
+## Fixed Code
+```swift
+{fixed_code}
+```
+"""
+                metadata = {
+                    "error_message": error_message,
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+                await self.rag.add_to_memory(
+                    content=content,
+                    memory_type="bug_fix",  # We'll map this to 'docs' internally with doc_type='bug_fix'
+                    metadata=metadata
+                )
+                
+                return "✅ Successfully ingested error fix into Knowledge Base."
+            except Exception as e:
+                logger.error(f"Failed to ingest into Vector Store: {e}")
+                return f"❌ Failed to ingest error fix: {e}"
+
+        elif name == "search_past_fixes":
+            query = arguments["error_query"]
+            
+            try:
+                # Search in Vector Store
+                results = await self.rag.search_memory(query, memory_type="docs", limit=3)
+                
+                # Filter for bug_fixes if possible, or just return relevant docs
+                # (The search_memory tool searches 'docs' collection where we stored them)
+                
+                if not results:
+                    return "No past fixes found for this error."
+                
+                output = ["Found similar past fixes:\n"]
+                for i, r in enumerate(results):
+                    # Check if it looks like a bug fix (has Error Message header)
+                    if "## Error Message" in r.content:
+                         output.append(f"--- Fix {i+1} ---")
+                         output.append(r.content)
+                         output.append("\n")
+                
+                if len(output) == 1: # Only header
+                     return "No relevant past fixes found."
+                     
+                return "\n".join(output)
+
+            except Exception as e:
+                logger.error(f"Failed to search past fixes: {e}")
+                return f"Error searching past fixes: {e}"
+
+        elif name == "xcode_build":
+            action = arguments.get("action", "build")
+            scheme = arguments.get("scheme", None)
+            destination = arguments.get("destination", "platform=iOS Simulator,name=iPhone 16,OS=latest")
+            workspace = arguments.get("workspace", None)
+
+            try:
+                # Auto-detect workspace/project
+                if not workspace:
+                    cwd = Path(os.getcwd())
+                    workspaces = list(cwd.glob("*.xcworkspace"))
+                    projects = list(cwd.glob("*.xcodeproj"))
+                    
+                    if workspaces:
+                        workspace = str(workspaces[0])
+                    elif projects:
+                        workspace = str(projects[0])
+                    else:
+                        return "Error: No .xcworkspace or .xcodeproj found in current directory."
+
+                # Auto-detect scheme if not provided
+                if not scheme:
+                    # List schemes
+                    if workspace.endswith(".xcworkspace"):
+                        list_cmd = f"xcodebuild -workspace '{workspace}' -list"
+                    else:
+                        list_cmd = f"xcodebuild -project '{workspace}' -list"
+                    
+                    list_result = subprocess.run(
+                        list_cmd, shell=True, capture_output=True, text=True, timeout=30
+                    )
+                    if list_result.returncode == 0:
+                        # Parse scheme names
+                        schemes = []
+                        in_schemes = False
+                        for line in list_result.stdout.splitlines():
+                            stripped = line.strip()
+                            if "Schemes:" in line:
+                                in_schemes = True
+                                continue
+                            if in_schemes and stripped:
+                                schemes.append(stripped)
+                            elif in_schemes and not stripped:
+                                break
+                        
+                        if schemes:
+                            scheme = schemes[0]  # Use first scheme
+                            logger.info(f"Auto-detected scheme: {scheme}")
+                        else:
+                            return f"Error: No schemes found. Output:\n{list_result.stdout}"
+                    else:
+                        return f"Error listing schemes: {list_result.stderr}"
+
+                # Build the xcodebuild command
+                if workspace.endswith(".xcworkspace"):
+                    cmd = f"xcodebuild -workspace '{workspace}' -scheme '{scheme}' -destination '{destination}' {action}"
+                else:
+                    cmd = f"xcodebuild -project '{workspace}' -scheme '{scheme}' -destination '{destination}' {action}"
+                
+                logger.info(f"🔨 Running: {cmd}")
+                
+                result = subprocess.run(
+                    cmd, shell=True, capture_output=True, text=True, timeout=120
+                )
+                
+                # Truncate output to last 50 lines (build output is very verbose)
+                all_output = (result.stdout + "\n" + result.stderr).strip()
+                lines = all_output.splitlines()
+                if len(lines) > 50:
+                    truncated = f"[...truncated {len(lines) - 50} lines...]\n" + "\n".join(lines[-50:])
+                else:
+                    truncated = all_output
+                
+                if result.returncode == 0:
+                    return f"✅ Build succeeded ({action}):\n{truncated}"
+                else:
+                    return f"❌ Build failed ({action}):\n{truncated}"
+                    
+            except subprocess.TimeoutExpired:
+                return f"❌ Build timed out after 120 seconds."
+            except Exception as e:
+                logger.error(f"xcode_build error: {e}")
+                return f"Error: {e}"
 
         else:
             raise ValueError(f"Unknown tool: {name}")

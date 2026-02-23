@@ -302,17 +302,36 @@ class IngestionEngine:
         batch_size: int = 10,
     ) -> Dict[str, Any]:
         """Ingest all files in a directory."""
+        # Reset counters for this run
+        self._processed_files = 0
+        self._processed_chunks = 0
+        
         files = self.scanner.scan(directory)
         
         if not files:
             logger.warning("No files found to ingest")
             return {"files": 0, "chunks": 0}
         
-        logger.info(f"Ingesting {len(files)} files...")
+        # Deduplication: Get existing file paths
+        existing_paths = await self.vector_store.get_indexed_file_paths()
+        logger.info(f"Found {len(existing_paths)} already indexed files")
+        
+        # Filter files
+        new_files = [f for f in files if str(f) not in existing_paths]
+        skipped_count = len(files) - len(new_files)
+        
+        if skipped_count > 0:
+            logger.info(f"Skipping {skipped_count} duplicate files")
+        
+        if not new_files:
+            logger.info("All files are already indexed. Nothing to do.")
+            return {"files": 0, "chunks": 0}
+
+        logger.info(f"Ingesting {len(new_files)} new files...")
         
         all_chunks = []
         
-        for i, file_path in enumerate(files):
+        for i, file_path in enumerate(new_files):
             try:
                 chunks = self._process_file(file_path)
                 all_chunks.extend(chunks)
@@ -324,7 +343,7 @@ class IngestionEngine:
                     all_chunks = []
                 
                 if (i + 1) % 10 == 0:
-                    logger.info(f"Processed {i + 1}/{len(files)} files")
+                    logger.info(f"Processed {i + 1}/{len(new_files)} files")
                     
             except Exception as e:
                 logger.error(f"Error processing {file_path}: {e}")
@@ -335,16 +354,19 @@ class IngestionEngine:
             logger.info(f"Added final {len(all_chunks)} chunks to vector store")
         
         return {
-            "files": len(files),
+            "files": len(new_files),
             "chunks": self._processed_chunks,
         }
     
     async def ingest_file(self, file_path: str) -> int:
-        """Ingest a single file."""
-        path = Path(file_path)
+        """Ingest a single file. Removes old chunks for this path first (upsert)."""
+        path = Path(file_path).resolve()
         
         if not path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
+        
+        # Remove old chunks for this file to prevent duplicates
+        await self.vector_store.delete_by_file_path(str(path))
         
         chunks = self._process_file(path)
         

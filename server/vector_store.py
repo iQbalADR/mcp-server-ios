@@ -466,7 +466,44 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Failed to get labels: {e}")
             return {}
-    
+
+    async def get_indexed_file_paths(self) -> set[str]:
+        """Get a set of all file paths currently indexed in the code collection."""
+        if self._code_table is None:
+            return set()
+        
+        try:
+            # Efficiently query only the file_path column
+            # LanceDB/Arrow is columnar, so this is fast
+            table_data = self._code_table.to_arrow()
+            if "file_path" in table_data.column_names:
+                paths = table_data.column("file_path").unique().to_pylist()
+                # Filter out empty strings if any
+                return {p for p in paths if p}
+            return set()
+        except Exception as e:
+            logger.error(f"Failed to get indexed file paths: {e}")
+            return set()
+
+    async def delete_by_file_path(self, file_path: str) -> int:
+        """Delete all chunks for a given file path. Returns number of rows deleted."""
+        if self._code_table is None:
+            return 0
+        
+        try:
+            # Resolve symlinks for consistent matching (e.g. /tmp -> /private/tmp on macOS)
+            resolved = str(Path(file_path).resolve())
+            before = self._code_table.count_rows()
+            self._code_table.delete(f"file_path = '{resolved}'")
+            after = self._code_table.count_rows()
+            deleted = before - after
+            if deleted > 0:
+                logger.debug(f"Deleted {deleted} chunks for {resolved}")
+            return deleted
+        except Exception as e:
+            logger.error(f"Failed to delete chunks for {file_path}: {e}")
+            return 0
+
     async def search_by_label(
         self, label: str, n_results: int = 20
     ) -> List[SearchResult]:
