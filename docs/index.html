@@ -354,7 +354,7 @@
 <body>
     <header>
         <h1>🧠 MCP Xcode Server</h1>
-        <p>Local AI for Xcode — Qwen2.5-Coder LLM + LanceDB vector memory + Re-Ranking</p>
+        <p>Local AI for Xcode — Qwen2.5-Coder LLM + LanceDB vector memory + Agentic Tools</p>
     </header>
 
     <nav>
@@ -364,8 +364,10 @@
             <li><a href="#quickstart">Quick Start</a></li>
             <li><a href="#models">Custom Models</a></li>
             <li><a href="#tools">Tools</a></li>
+            <li><a href="#agent">Agent Features</a></li>
             <li><a href="#memory">Memory</a></li>
             <li><a href="#config">Configuration</a></li>
+            <li><a href="#scripts">Scripts</a></li>
         </ul>
     </nav>
 
@@ -591,6 +593,7 @@ curl http://localhost:1234/mcp/stats</code></pre>
             <h2>Available Tools</h2>
             <p>MCP tools exposed to Xcode's AI Assistant:</p>
 
+            <h3>🧠 Intelligence Tools</h3>
             <table>
                 <thead>
                     <tr>
@@ -613,8 +616,56 @@ curl http://localhost:1234/mcp/stats</code></pre>
                     </tr>
                     <tr>
                         <td><code>ask_with_context</code></td>
-                        <td>Ask any question with codebase context</td>
+                        <td>Ask any question with codebase context (RAG search)</td>
                     </tr>
+                </tbody>
+            </table>
+
+            <h3>🔨 Action Tools</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>list_files</code></td>
+                        <td>List files in a directory</td>
+                    </tr>
+                    <tr>
+                        <td><code>read_file</code></td>
+                        <td>Read file content</td>
+                    </tr>
+                    <tr>
+                        <td><code>write_to_file</code></td>
+                        <td>Create or modify files</td>
+                    </tr>
+                    <tr>
+                        <td><code>run_command</code></td>
+                        <td>Run terminal commands (120s timeout, <code>cwd</code> support, output truncation)</td>
+                    </tr>
+                    <tr>
+                        <td><code>apply_patch</code></td>
+                        <td>Apply git-style unified diffs to files</td>
+                    </tr>
+                    <tr>
+                        <td><code>xcode_build</code> 🆕</td>
+                        <td>Build, clean, or test Xcode projects (auto-detects workspace &amp; scheme)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📦 Memory &amp; Knowledge Tools</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <tr>
                         <td><code>add_to_memory</code></td>
                         <td>Add code/docs/notes to persistent memory</td>
@@ -632,23 +683,44 @@ curl http://localhost:1234/mcp/stats</code></pre>
                         <td>Clear a memory collection</td>
                     </tr>
                     <tr>
-                        <td><code>list_files</code></td>
-                        <td>List files in a directory (Agentic)</td>
+                        <td><code>ingest_error_fix</code> 🆕</td>
+                        <td>Log an error + solution to the knowledge base</td>
                     </tr>
                     <tr>
-                        <td><code>read_file</code></td>
-                        <td>Read file content (Agentic)</td>
-                    </tr>
-                    <tr>
-                        <td><code>write_to_file</code></td>
-                        <td>Create or modify files (Agentic)</td>
-                    </tr>
-                    <tr>
-                        <td><code>run_command</code></td>
-                        <td>Run terminal commands (Agentic)</td>
+                        <td><code>search_past_fixes</code> 🆕</td>
+                        <td>Search for past error solutions</td>
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <!-- Agent Features Section -->
+        <section id="agent">
+            <h2>Agent Features</h2>
+            <p>The server includes agent-loop capabilities that make it more than just a chat interface.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="icon">⏳</div>
+                    <h4>Instant Feedback</h4>
+                    <p>Sends an immediate "Processing..." indicator before any RAG or model calls, eliminating perceived latency.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🔍</div>
+                    <h4>RAG Context Injection</h4>
+                    <p>Automatically searches the vector database for relevant code snippets and injects them as context.</p>
+                </div>
+                <div class="card">
+                    <div class="icon">🔨</div>
+                    <h4>Xcode Build Tool</h4>
+                    <p>Auto-detects workspaces, schemes, and runs <code>xcodebuild</code> with output truncation (50 lines).</p>
+                </div>
+                <div class="card">
+                    <div class="icon">📝</div>
+                    <h4>Configurable System Prompt</h4>
+                    <p>Customize AI personality and formatting via <code>config.yaml</code> — no code changes needed.</p>
+                </div>
+            </div>
         </section>
 
         <!-- Memory Section -->
@@ -694,6 +766,15 @@ python scripts/memory_search.py --export backup.json</code></pre>
             <h2>Configuration</h2>
             <p>Edit <code>config.yaml</code> to customize the server:</p>
 
+            <h3>System Prompt 🆕</h3>
+            <div class="alert alert-success">
+                <strong>New:</strong> Customize the AI's personality and formatting rules directly in <code>config.yaml</code>. Restart the server to apply changes.
+            </div>
+            <pre><code><span class="code-keyword">system_prompt:</span> <span class="code-string">|</span>
+  You are a Senior iOS Engineer and Xcode AI Assistant.
+  <span class="code-comment"># Formatting rules, few-shot examples, tool usage instructions</span>
+  <span class="code-comment"># Edit this to customize AI behavior without touching code</span></code></pre>
+
             <h3>Ollama Settings</h3>
             <pre><code><span class="code-keyword">ollama:</span>
   <span class="code-keyword">base_url:</span> <span class="code-string">"http://localhost:11434"</span>
@@ -726,46 +807,92 @@ python scripts/memory_search.py --export backup.json</code></pre>
         </section>
 
         <!-- File Structure Section -->
+        <!-- Scripts Section -->
+        <section id="scripts">
+            <h2>Utility Scripts</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Script</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>scripts/setup.sh</code></td>
+                        <td>Create venv, install dependencies, pull Ollama models</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/start_http_server.sh</code></td>
+                        <td>Start HTTP server for Xcode on port 1234</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/create_models.sh</code></td>
+                        <td>Create custom Ollama models from Modelfiles</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/ingest_project.py</code></td>
+                        <td>Ingest code files into vector DB (with deduplication)</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/clear_vectordb.py</code> 🆕</td>
+                        <td>Clear all vector database data (<code>--force</code> to skip confirmation)</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/memory_search.py</code></td>
+                        <td>Search, query, and export memory contents</td>
+                    </tr>
+                    <tr>
+                        <td><code>scripts/watch_project.sh</code></td>
+                        <td>Auto-sync project changes to vector DB</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- File Structure Section -->
         <section id="files">
             <h2>Project Structure</h2>
-            <pre><code>xcode-mcp-server/
-├── config.yaml              <span class="code-comment"># Configuration</span>
+            <pre><code>mcp-server-ios/
+├── config.yaml              <span class="code-comment"># Configuration + system prompt</span>
+├── .gitignore               <span class="code-comment"># Git ignore rules</span>
 ├── requirements.txt         <span class="code-comment"># Python dependencies</span>
-├── README.md                <span class="code-comment"># Documentation</span>
 │
 ├── server/                  <span class="code-comment"># Main server package</span>
-│   ├── mcp_server.py        <span class="code-comment"># MCP protocol server</span>
-│   ├── ollama_client.py     <span class="code-comment"># Ollama integration</span>
-│   └── vector_store.py      <span class="code-comment"># LanceDB wrapper</span>
+│   ├── http_server.py       <span class="code-comment"># 🆕 OpenAI-compatible HTTP API for Xcode</span>
+│   ├── mcp_server.py        <span class="code-comment"># MCP protocol server + tools</span>
+│   ├── ollama_client.py     <span class="code-comment"># Ollama LLM integration</span>
+│   └── vector_store.py      <span class="code-comment"># LanceDB wrapper (dedup-aware)</span>
 │
 ├── models/                  <span class="code-comment"># Custom Ollama Modelfiles</span>
-│   ├── Modelfile.qwen-coder     <span class="code-comment"># ⭐ Qwen2.5-Coder iOS model</span>
+│   ├── Modelfile.qwen-coder     <span class="code-comment"># ⭐ Recommended</span>
 │   ├── Modelfile.ios-architect
 │   ├── Modelfile.swiftui
 │   └── Modelfile.reviewer
 │
 ├── scripts/                 <span class="code-comment"># Helper scripts</span>
 │   ├── setup.sh             <span class="code-comment"># Initial setup</span>
-│   ├── start_http_server.sh <span class="code-comment"># Start HTTP server for Xcode</span>
-│   ├── start_server.sh      <span class="code-comment"># Start MCP server (stdio)</span>
+│   ├── start_http_server.sh <span class="code-comment"># Start HTTP server</span>
 │   ├── create_models.sh     <span class="code-comment"># Create custom models</span>
-│   ├── ingest_project.py    <span class="code-comment"># Ingest code files</span>
-│   ├── watch_project.sh     <span class="code-comment"># ⚡ Auto-sync project</span>
+│   ├── ingest_project.py    <span class="code-comment"># Ingest code (dedup)</span>
+│   ├── clear_vectordb.py    <span class="code-comment"># 🆕 Clear vector DB</span>
+│   ├── watch_project.sh     <span class="code-comment"># Auto-sync project</span>
 │   └── memory_search.py     <span class="code-comment"># Search memory</span>
 │
 ├── docs/                    <span class="code-comment"># HTML documentation</span>
 │   └── index.html           <span class="code-comment"># This file</span>
 │
-├── data/                    <span class="code-comment"># Data storage</span>
+├── data/                    <span class="code-comment"># Data (gitignored)</span>
 │   └── lancedb/            <span class="code-comment"># Vector database</span>
 │
-└── logs/                    <span class="code-comment"># Log files</span></code></pre>
+└── logs/                    <span class="code-comment"># Logs (gitignored)</span></code></pre>
         </section>
     </main>
 
     <footer>
-        <p>MCP Xcode Server • Qwen2.5-Coder + LanceDB + Re-Ranker</p>
+        <p>MCP Xcode Server • Qwen2.5-Coder + LanceDB + Agentic Tools</p>
         <p>Made for iOS developers who want local, private AI assistance</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Last updated: February 23, 2026</p>
     </footer>
 </body>
 
